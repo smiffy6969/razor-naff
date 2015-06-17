@@ -1,11 +1,13 @@
 # Razor NAFF Web Component Helper Library
 
 
-Razor NAFF is a helper library to make it easier to create native web components written in vanilla javascript, it aims to keep out of your way, allowing you to create native web components without any framework, razor NAFF is not a framework, it is a helper library.
+Razor NAFF is a helper library to make it easier to create native web components written in vanilla javascript, or allowing you to use the register function to make life a little easier, the choice is yours. It aims to keep out of your way, allowing you to create native web components without any framework, or if you wish, it can be a little more helpful, building the component and registering it for you. If you choose to use the helper tools, there is also simple two way binding, scope management and a more structured approach to building custom elements, but with this comes overhead.
 
-Various tools are available, allowing you to apply templates to custom elements, find base scope of the custom element from any children and even let you search for other scopes to run native JS protoype functions. The idea behind NAFF was to provide a simple way to create web components with internal logic without pulling you away from native JS.
+For best results, it is probably best to go somewhere in the middle, basic components use native javascript, with more complex components using the binding features to make things easier. The end result here would be good optimization of resources.
 
-This library also comes with its own suite of web components that use this library to help give you a good place to start building apps and website right away.
+Various tools are available, allowing you to apply templates to custom elements, find base scope of the custom element from any children and even let you search for other scopes to run native JS protoype functions. The idea behind NAFF was to provide a simple way to create web components with internal logic without pulling you too much away from native JS.
+
+This library also comes with its own suite of web components that use this library to help give you a good place to start building apps and websites right away.
 
 
 ## Installation  
@@ -32,7 +34,7 @@ bower install razor-naff-components --save
 ## Setup
 
 
-In order to use the NAFF library, you need to include it, best to include it after any polyfills such as webcomponentsjs.
+In order to use the NAFF library, you need to include it, there are no dependancies in NAFF, but you will need to polyfill missing functions for older browsers, such as webcomponentsjs.
 
 
 ```html
@@ -41,36 +43,22 @@ In order to use the NAFF library, you need to include it, best to include it aft
 ```
 
 
-Now we have the polyfills and NAFF installed, so we can use the pair together to build native web components (you can swap webcomponentsjs with others is you wish, such as x-tags).
+Now we have the polyfills and NAFF installed, so we can use the pair together to build web components (you can swap webcomponentsjs with others is you wish, such as x-tags).
 
 
 ## Usage
 
 
-To use the NAFF library, it all starts with a call to naff(), which is the base function for NAFF. We do this in JS as follows...
+To use the NAFF library, it all starts with 'naff', which is the base name for razorNAFF. We use this name to access all NAFF functions...
 
 
 ```javascript
-naff();
-```
-
-
-This constructor function will do nothing more than setup the naff internal obect with a base working object, which will not do much apart from allow you to run other functions such as...
-
-
-```javascript
-naff().someCrazyAssFunction();
-```
-
-
-Whilst this will allow you access to internal functions, they probably will not do much without a starting point to work from. NAFF works by first being given an insertion point for reference, this allows it to work out from here, where to go and what to do to what, like find the base scope for a custom element (a scope is the root of where your custom element logic is built which is actually the dom custom element, as all methods and properties of your custom object are prototypes of the dom element).
-
-
-```javascript
-var scope = naff(this).getScope();
+var scope = naff.getScope(this);
 scope.someCustomElementFunction();
+
 // or
-naff(this).getScope().someCustomElementFunction();
+
+naff.getScope(this).someCustomElementFunction();
 ```
 
 
@@ -80,34 +68,40 @@ These two snippets to the same thing, both take in the current point in the dom,
 ```javascript
 var scope = document.querySelector('x-foo');
 scope.someCustomElementFunction();
+
 // or
+
 document.querySelector('x-foo').someCustomElementFunction();
 ```
 
 
-The difference with NAFF and native selection is that in the NAFF example, we search backwards out through the parents until we find the scope of the custom element, meaning our custom element code will work on all instances of <x-foo></x-foo> without issue, whereas the native selector method will only work on the first x-foo element it finds. This is how we can map functions from templates in custom elements children direct to the containing custom element scope when building web components like this...
+The difference with NAFF and native selection is that in the NAFF example, we search backwards out through the parents until we find the scope of the custom element, meaning our custom element code will work on all instances of `<x-foo></x-foo>` without issue, whereas the native selector method will only work on the first x-foo element it finds. This is how we can map functions from templates in custom element children direct to the containing custom element scope. This is handy as it can be the place where we store all logic associated with the custom element, as it may be built up from multiple elements and do various things. 
+
+
+The other benefit of using naff is that it allows us to abstract back the use of shadow dom. quite simply, shadow dom allows us to encapsulate our custom elements html, style and logic to stop outside things affecting the web component as well as inside things leaching out. Whilst you can build your own components using shadow dom, or just normal light dom (where there is no exncapsulation of html, style and logic), all naff components are dual use. Simply add the 'shadow-dom' attribute to your custom element call `<x-foo shadow-dom></x-foo>`, to have your elements content created in a shadow root for encapuslation when using the naff register function, or you can set the shadowDom property, setting it to true when registering your components through naff.
+
+
+You may want to encapsulate all the time, some of the time, or you may want outside logic and style to bleed in, in the naff components we have created all logic and style in root and not the template, then used '/deep/' to reference back in with specific tag name declarations, this allows you to use either shadow dom or light dom (default). Reasons for this are primarily due to some browsers still not shipping with shadow dom support or shadow dom active (support but must be turned on by user), as such we are offering the best of both worlds, all still with a single load of style and logic per import.
+
+Now when you use naff to get the working scope, it will still get you the root custom element even if working in a shadow root, something that you cannot do using just querySelector(), so using naff to resolve scope, shadow dom should not cause you any issues.
 
 
 ```html
 <template id="x-foo">
 	<div class="test">
-		<button onclick="naff(this).getScope().someFunctionOfXFoo()"></button>
+		<button onclick="naff.getScope(this).someFunctionOfXFoo()"></button>
 	</div>
 </template>
 ```
 
 
-This allows us to map this login back to the custom x-foo logic in the web component file
+This allows us to map this click back to the custom x-foo logic in the web component file, whilst it is possible to do this with vanilla JS, from this point onwards, we will be using the naff register function to build and apply our custom element. Yes this can be used to build vanilla web components, but I am not going to teach you how to write vanilla JS.
 
 
-```html
-<template id="x-foo">
-	<div class="test">
-		<button onclick="naff(this).getScope().pushed()"></button>
-		<content></content>
-	</div>
-</template>
+If you wish to go down the vanilla path, the below as a good starting point... 
 
+
+```javascript
 <script>
 (function()
 {
@@ -121,13 +115,25 @@ This allows us to map this login back to the custom x-foo logic in the web compo
 
 	// on created, apply template
 	xFooProto.createdCallback = function() {
-		naff(this).applyTemplate();
+		this.innerHTML = this.template.innerHTML;
+	};
+
+	// on attributes changed
+	xFooProto.attributeChangedCallback = function(name, oldVal, newVal)
+	{
+		// iterate over changes
+		switch (name)
+		{
+			case 'name':
+				this.querySelector('something').setAttribute('name', newVal);
+			break;
+		}
 	};
 
 	/* ELEMENT */
 
 	xFooProto.pushed = function() {
-	  console.log('pushed() called');
+	  console.log('pushed() called...');
 	};
 
 	/* INSERTION */
@@ -139,169 +145,188 @@ This allows us to map this login back to the custom x-foo logic in the web compo
 ```
 
 
-The button click in the html is mapped back to the root scope of the custom element.
-
-
-You will also note that there is another naff function in that code, the call to apply the template to the to the custom element once itis created. This call back function fires when a custom element is create in the dom. Once it has been created we need to apply the template to it to render the contents, so we use the NAFF helper function to do this as it takes care of the work for us. NAFF creates an instance base on 'this' (which in this case is the custom element which is actuall inserted into the dom), and it applies the template found at xFooProto.template and merges the content together (using `<content></content>` style tags to embed the code into the template from the '<x-foo></x-foo>' element).
-
-Just like shadow dom you can also embed various content in various places using things like '<heading></heading>' in the custom element tag and `<content select="heading"></content>` in the template to located specific content in specic places in the returned template.
-
-
-In addtion to `getScope()` there is also `findScope()`, `getParentScope()`, `findParentScope()`... these allow us to traverse many custom element scopes, get hold of containing parent custom element scopes and so on, as well as using selectors if you wish...
-
-
-```javascript
-naff('.some-custom-element').getScope(); // .some-custom-element scope
-naff('.some-custom-element').getParentScope(); // .some-custom-element-parent scope
-naff(this).getParentScope('top-most-custom-element-id'); // top-most-custom-element scope, this one starts at 'this' looking backwards until it matches the id of the custom element
-```
-
-
-## Properties
-
-* __origin__ - The insertion point of NAFF.
-* __scope__ - The scope of the containing web component.
-* __originCopy__ - An unaltered copy of the custom element before applying template changes when applying template.
-* __originAltered__ - A copy of the custom element after applying template changes
-
-
-## Methods
-
-
-### naff(selector)
-
-
-```javascipt
-naff(this);
-naff('#test.my[element=please]');
-```
-
-
-The constructor, used to access functions and properties of NAFF by setting up the NAFF object with a reference insertion point to work from.
-
-
-* __selector__ - Can be a query selector or reference such as 'this'
-
-
-### findScope()
-
-
-```javascipt
-var ce = naff(this).findScope();
-console.log(ce.scope);
-```
-
-
-Finds the current elements containing custom element scope.
-
-
-### findParentScope(id)
-
-
-```javascipt
-var ce = naff(this).findParentScope('x-foo');
-console.log(ce.scope);
-```
-
-
-Finds the current elements parent containing custom element scope, uses an optional id to keep looking back until a match is found.
-
-
-* __id__ [optional] - The id of the parent scopes template to search for, which happens to be the custom element tag name too as you use it in your html.
-
-
-### getScope()
-
-
-```javascipt
-var scope = naff(this).getScope();
-console.log(scope);
-```
-
-
-Finds the current elements containing custom element scope, and returns its scope.
-
-
-### getParentScope(id)
-
-
-```javascipt
-naff(this).getParentScope('x-foo');
-console.log(scope);
-```
-
-
-Finds the current elements parent containing custom element scope, uses an optional id to keep looking back until a match is found and returns the scope.
-
-
-* __id__ [optional] - The id of the parent scopes template to search for, which happens to be the custom element tag name too as you use it in your html.
-
-
-### applyTemplate()
-
-
-```javascipt
-// setup new prototype for custom element
-var xFooProto = Object.create(HTMLElement.prototype);
-
-// apply template to element (if any)
-xFooProto.template = document._currentScript.ownerDocument.querySelector('#x-foo');
-
-// on created, apply template
-xFooProto.createdCallback = function() {
-	naff(this).applyTemplate();
-};
-```
-
-
-use this to apply the template to the custom element, this should be done after the element is created using the callback on the prototype of the web component when building it. All content in the containing element will be merged into the template content using content elements as so...
+From, this point on, vanilla JS is up to you... Now on to using the naff helpers more.
 
 
 ```html
-<!-- in your base html document -->
-<x-foo>
-	<p>Put this in custom element</p>
-</x-foo>
+<!-- STYLE - Encapsulate all css to tag name to stop bleed out of component style, use deep to ensure both normal or shadow dom usage -->
+<style type="text/css">
+	html /deep/ button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
+</style>
 
-<!-- in your web component template -->
+<!-- TEMPLATE -->
 <template id="x-foo">
-	<h1>Hello</h1>
-	<content></content>
+	<div class="test">
+		<button onclick="naff.getScope(this).pushed()"></button>
+		<content></content>
+	</div>
 </template>
 
-<!-- gives you the following in your base html document -->
-<x-foo>
-	<h1>Hello</h1>
-	<p>Put this in custom element</p>
-</x-foo>
+<!-- LOGIC -->
+<script>
+	naff.registerElement({
+		// Setup
+
+		name: 'x-foo', 		// Custome element name
+		extends: null, 		// do we extend another element
+		shadowDom: false, 	// should we force shadow dom on all instances
+		dataBind: false, 	// do we want to use data-binding and templating in template
+
+	 	// built in methods
+
+		created: function()
+		{
+			// when created
+			console.log('created');
+
+			this; 				// The host scope instance, which is the instance of this blueprint
+
+			this.host; 			// The host element instance, so you can get attributes etc
+
+			this.template; 		// The template instance, so you can use querySelector inside the template
+								// Please note template and host ARE NOT THE SAME (they can resolve) to the same thing
+								// if not using shadow dom, but if using shadow dom they differ, so always use
+								// host for root element and template for insternal access
+		},
+
+		attached: function()
+		{
+			// when added to dom
+			console.log('attached');
+		},
+
+		detached: function()
+		{
+			// when removed from dom
+			console.log('detached');
+		},
+
+		attributeChanged: function(name, oldVal, newVal)
+		{
+			// when host attribute changes
+			console.log('attributeChanged');
+		},
+
+		observer: function(path, change)
+		{
+			// when scope data changes
+			console.log('observer');
+		},
+
+		// Declare Properties
+
+		clickedTimes: 0,
+
+		// Custom methods
+
+		pushed: function(event)
+		{
+			this.clickedTimes++;
+			console.log(clickedTimes);
+		}
+	});
+</script>
 ```
+
+
+First of all, styling, we have placed this outside fo the tmeplate because we are allowing the component to be used in light and shadow dom, this will ensure styling only loads once and targets the correct component inboth case. If you are going to force `shadowDom: true` in your registration, then you can just put the style in the template, omit the /deep/ calls, this will load the style for each dom fragment liek so...
 
 
 ```html
-<!-- in your base html document -->
-<x-foo>
-	<main><p>Put this in custom element main</p></main>
-	<footer><p>Put this in custom element footer</p></footer>
-</x-foo>
-
-<!-- in your web component template -->
+<!-- TEMPLATE -->
 <template id="x-foo">
+	<style type="text/css">
+		button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
+	</style>
 	<div class="test">
-		<button onclick="naff(this).getScope().pushed()"></button>
-		<content select="main"></content>
+		<button onclick="naff.getScope(this).pushed()"></button>
+		<content></content>
 	</div>
-	<content select="footer"></content>
 </template>
-
-<!-- gives you the following in your base html document -->
-<x-foo>
-	<div class="test">
-		<button onclick="naff(this).getScope().pushed()"></button>
-		<main><p>Put this in custom element main</p></main>
-	</div>
-	<footer><p>Put this in custom element footer</p></footer>
-</x-foo>
 ```
 
 
-__WIP... TO BE CONTINUED...__
+Again this is up to you, whilst I prefer the more universal approach, which only loads style once, the latter loads style into a forced shadow dom element, meaning more style is loaded, but it is cleaner styling.
+
+
+The button click in the html is mapped back to the root scope of the custom element instance (not the actual xfoo object above... the instance of x-foo in the dom that was created from the object above, think of the above as a blueprint that is copied to each element). Always ensure when working inside the proto structure methods, always refer to 'this' as the base scope as this will be the specific element instance in the dom, using the 'proto' variable to reference methods and properties will affect all instances of this custom element in the dom. Also note that whilst creating a property such as `someProperty = 'test'`, always access it in functions as `this.someProperty` to ensure you read/update the dom instance copy and not the underlying custom object blueprint above as this will change it for all instance in the dom.
+
+
+You can take this one step further, by taking advantage of the data binding and templating features, this gives basic binding and templating to make things simpler, just remember though the more features you use the more overhead, this is why we let you choose how much you want naff to help you. The folowing should do the same as the above using binding. We have omitted unsused functions for clarity.
+
+
+```html
+<template id="x-foo">
+	<div class="test">
+		<button naff="click|pushed()"></button>
+		<content></content>
+	</div>
+</template>
+
+<script>
+	naff.registerElement({
+		// Setup
+
+		name: 'x-foo', 		// Custome element name
+		dataBind: true, 	// do we want to use data-binding and templating in template
+
+		// Declare Properties
+
+		clickedTimes: 0,
+
+		// Custom methods
+
+		pushed: function(event)
+		{
+			this.clickedTimes++;
+			console.log(clickedTimes);
+		}
+	});
+</script>
+```
+
+
+You could even map the clickedTimes property make now for some great binding goodness...
+
+
+```html
+<template id="x-foo">
+	<div class="test">
+		<p>Clicked <span naff="text|clickedTimes"></span></p>
+		<button naff="onclick|pushed()"></button>
+	</div>
+</template>
+
+<script>
+	naff.registerElement({
+		// Setup
+
+		name: 'x-foo', 		// Custome element name
+		dataBind: true, 	// do we want to use data-binding and templating in template
+
+		// Declare Properties
+
+		clickedTimes: 0,
+
+		// Custom methods
+
+		pushed: function(event)
+		{
+			this.clickedTimes++;
+		}
+	});
+</script>
+```
+
+
+Now you should see your clicks automatically updating the dom. Whilst we do currently allow primatives, strings in quotes, functions and pretty much any even type you like, we do draw the line at this point, just enough to be helpful.
+
+
+## Templating (using dataBind: true)
+
+
+If you do wish to use datbinding, the following should give you an idea of how to use the templating/binding features. All binding starts with the universal `naff=""` attribute. You can use this to bind  
+
+
+
+... TO BE CONTINUED, WIP
