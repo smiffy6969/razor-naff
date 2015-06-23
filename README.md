@@ -338,7 +338,6 @@ When creating custom properties, please ensure you keep away from using the foll
 * name
 * extends
 * dataBind
-
 * created()
 * attached()
 * detached()
@@ -351,7 +350,7 @@ All the above are default names for properties and methods, they are either set 
 ## Default Properties
 
 
-### this [object] (scope)
+### this __object__ (scope)
 
 
 Using `this` in any function defined within the naff registration, will refer to the custom element instance created in the dom, NOT the registration blueprint function.
@@ -372,7 +371,7 @@ this.host // host
 this.template // template
 
 
-### this.host [HTML object] (custom element)
+### this.host __HTML object__ (custom element)
 
 
 This is the custom element root, the actual custom element as you added it in your main html document, use this to get access to the host element for things like reading attributes etc. Please note that this is not the same as `this.template`, whilst they can resolve to the same thing if not using shadow dom, when shadow dom is used, the host is the root and the template is the document fragment contents. Always use this.host when refering to the actual custom element and its interactions with the rest of the world.
@@ -389,7 +388,7 @@ This is the custom element root, the actual custom element as you added it in yo
 ```
 
 
-### this.template [HTML object] (custom element contents)
+### this.template __HTML object__ (custom element contents)
 
 
 This is the custom element contents as you see it in the template, use this to get access to the elements in the template. Please note that this is not the same as `this.host`, whilst they can resolve to the same thing if not using shadow dom, when shadow dom is used, the template is the document fragment contents. If you try to do querySelector on this.host when shadow dom is in use, you will not return the contents of the template. Please use `this.template` when refering to template elements.
