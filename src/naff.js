@@ -8,9 +8,9 @@ var naff = (function ()
 
     /* CONFIG */
 
-    if (rivets)
+    if (typeof rivets != 'undefined')
     {
-	    rivets.configure({
+		rivets.configure({
 			prefix: 'naff',
 			preloadData: true,
 			rootInterface: '.',
@@ -187,7 +187,7 @@ var naff = (function ()
 		}
 
 		// apply data binding to template if set
-		if (!!bind && rivets) rivets.bind((shadow ? root : host), host.scope);
+		if (!!bind && typeof rivets != 'undefined') rivets.bind((shadow ? root : host), host.scope);
 	};
 
 	/**
