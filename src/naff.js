@@ -1,6 +1,37 @@
-// create module
+// naff.js
+// version: (please see package.js)
+// author: Paul Smith
+// license: MIT
 var naff = (function () 
 {
+    'use strict';
+
+    /* CONFIG */
+
+    if (rivets)
+    {
+	    rivets.configure({
+			prefix: 'naff',
+			preloadData: true,
+			rootInterface: '.',
+			templateDelimiters: ['{{', '}}'],
+
+			// Augment the event handler of the on-* binder
+			handler: function(target, event, binding) 
+			{
+				// need to send in all arguments, resolve them to model
+				var target = getScope(target);
+				var parts = binding.keypath.replace(')', '').split('(');
+				var args = parts[1].split(',');
+
+				for (var i = 0; i < args.length; i++) args[i] = _parseData(args[i], target);
+
+				args.unshift(event);
+				target[parts[0]].apply(target, args);
+			}
+		});
+	}
+
 	/* PUBLIC */
 
 	/**
@@ -51,7 +82,7 @@ var naff = (function ()
 			
 			if (!!template) 
 			{
-				_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
+				applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
 				this.scope.host = this;
 			}
@@ -61,17 +92,11 @@ var naff = (function ()
 
 		proto.attachedCallback = function()
 		{
-			_observeNested(this, this.scope, _observeBinding);
-
 			if (!!blueprint.attached) this.scope.attached();
 		};
 
 		proto.detachedCallback = function()
 		{
-			// garbage collection
-			Object.unobserve(this.scope, _observeBinding);
-			_removeBindings(this);
-
 			if (!!blueprint.detached) this.scope.detached();
 		};
 
@@ -87,26 +112,10 @@ var naff = (function ()
 	};
 
 	/**
-	 * [private] - Clone an objects properties and methods
-	 * @param object The object to clone
-	 * @return object The cloned object (not a reference to an object)
-	 */
-	var cloneObject = function(obj)
-	{
-	    if (obj === null || obj.toString() !== '[object Object]') return obj;
-	    var temp = obj.constructor();
-	    for (var key in obj) temp[key] = cloneObject(obj[key]);
-	 
-	    return temp;
-	}
-
-	/* PRIVATE */
-
-	/**
-	 * [private] - Apply a template to a new custom element in light dom (default) or shadow dom (with 'shadow-dom' attribute on custom element)
+	 * [public] - Apply a template to a new custom element in light dom (default) or shadow dom (with 'shadow-dom' attribute on custom element)
 	 * @param mixed host The custom element to apply the template to, usually 'this' but can be selector string
 	 */
-	var _applyTemplate = function(host, template, shadowDom, dataBind)
+	var applyTemplate = function(host, template, shadowDom, dataBind)
 	{
 		host = _getElement(host);
 		if (!host) throw 'Host custom element not specified, please add custom element reference or lookup';
@@ -178,29 +187,24 @@ var naff = (function ()
 		}
 
 		// apply data binding to template if set
-		if (!!bind) _applyBindings((shadow ? root : host), host.scope);
+		if (!!bind && rivets) rivets.bind((shadow ? root : host), host.scope);
 	};
 
 	/**
-	 * [private] - Find all elements in templat eto remove bindings and issue remove
-	 * @param object element The element to find all children from
+	 * [private] - Clone an objects properties and methods
+	 * @param object The object to clone
+	 * @return object The cloned object (not a reference to an object)
 	 */
-	var _removeBindings = function(element)
+	var cloneObject = function(obj)
 	{
-		var elements = _getBindableChildren(element);
-		for (var i = 0; i < elements.length; i++) _removeBind(elements[i]);
-	};
+	    if (obj === null || obj.toString() !== '[object Object]') return obj;
+	    var temp = obj.constructor();
+	    for (var key in obj) temp[key] = cloneObject(obj[key]);
+	 
+	    return temp;
+	}
 
-	/**
-	 * [private] - Find all elements in template to add bindings
-	 * @param object element The element to find all children from
-	 * @param object model The scoipe to bind to
-	 */
-	var _applyBindings = function(element, model)
-	{
-		var elements = _getBindableChildren(element);
-		for (var i = 0; i < elements.length; i++) _updateBind(elements[i], model);
-	};
+	/* PRIVATE */
 
 	/**
 	 * [private] - parse all data to return correct type
@@ -209,159 +213,33 @@ var naff = (function ()
 	 * @param bool returnFunc The force function return flag, for binding functions to events
 	 * @return mixed The resulting data type forced (or a function if flag set)
 	 */
-	var _parseData = function(data, model, returnFunc)
+	var _parseData = function(data, model)
 	{
+		if (!data) return;
 		data = data.trim();
 
 		if (/^[0-9]+$/i.test(data)) return parseInt(data); // integer
 		else if (data == 'true' || data == 'false') return data === 'true' ? true : false; // boolean
 		else if (data == 'null') return null; // null
-		else if (/^[a-z0-9-_.]+$/i.test(data))
+		else if (/^(\'|\"){1}.*(\'|\"){1}$/.test(data))	return data.substring(1, data.length-1); // string
+		else
 		{
-			// property
-			var parts = data.split('.');
-			var result = model[parts[0]];
-			for (var i = 1; i < parts.length; i++) result = result[parts[i]];
+			// property with . seperators and [] sperators
+			var dots = data.split('.');
+			var result = model;
+			for (var i = 0; i < dots.length; i++) 
+			{
+				var bracks = dots[i].split('[');
+				for (var c = 0; c < bracks.length; c++) 
+				{
+					var key = !/^[0-9 ]+$/i.test(bracks[c]) ? bracks[c].replace(/[\'\"\] ]/g, '') : parseInt(bracks[c].replace(/[ ]/g, ''));
+					result = !result ? result : result[key];
+				};
+			}				
+
 			return result;
 		}
-		else if (/^[a-z0-9-_]+\({1}.*\){1}\;?$/i.test(data))
-		{
-			// function
-			var details = data.replace(/[\)\;]/g, '').split('(');
-			var func = details[0];
-			var props = details[1].split(',');
-
-			for (var i = 0; i < props.length; i++) props[i] = _parseData(props[i], model);
-
-			if (!model[func]) return;
-			
-			if (!returnFunc) return model[func].apply(model, props);
-			return {func: model[func], props: props};
-
-		}
-		else if (/^(\'|\"){1}.*(\'|\"){1}$/.test(data))	return data.substring(1, data.length-1); // string
 	};
-
-	/**
-	 * [private] - Update bind for a specific element
-	 * @param object element The element to update
-	 * @param object model the scope to refer to when updating
-	 */
-	var _updateBind = function(element, model)
-	{		
-		var details = element.getAttribute('naff').split('|');
-		if (details.length < 2) return;
-		
-		switch (details[0])
-		{
-			case 'text':
-				element.innerText = _parseData(details[1], model);
-			break;
-			case 'html':
-				element.innerHTML = _parseData(details[1], model);
-			break;
-			default:
-				if (details[0].substring(0, 2) == 'on') element.addEventListener(details[0].substring(2, details[0].length), _listener, false);
-			break;
-		}
-	};
-
-	/**
-	 * [private] - remove bind for a specific element
-	 * @param object element The element to remove binding
-	 */
-	var _removeBind = function(element)
-	{		
-		var details = element.getAttribute('naff').split('|');
-		if (details.length < 2) return;
-		if (details[0].substring(0, 2) == 'on') element.removeEventListener(details[0].substring(2, details[0].length), _listener, false);
-	};
-
-	/**
-	 * [private] - global naff listener, for applying/removing events
-	 * @param object event The event from the listening service as it happens
-	 */
-	var _listener = function(event)
-	{
-		var details = this.getAttribute('naff').split('|');
-		if (details.length < 2) return;
-		
-		var model = naff.getScope(this);
-		var data = _parseData(details[1], model, true);
-		data.props.unshift(event, this);
-		data.func.apply(model, data.props);
-	}
-
-	/**
-	 * [private] - nested object.observe to ensure we capture all changes in scope
-	 * @param object host The scope/this you want to force when resulting function is run
-	 * @param object obj The obj to watch
-	 * @param function callback The callback function to run with host scope
-	 * @param string path internal pointer to nested object path, leave blank
-	 */
-	var _observeNested = function(host, obj, callback, path) 
-	{
-		for (var key in obj) if (!!obj[key] && typeof obj[key] == 'object' && obj[key].toString() == '[object Object]') _observeNested(host, obj[key], callback, path + '.' + key);
-    	Object.observe(obj, function(changes) { callback.apply(host, [changes, path]) });
-	};
-
-	/**
-	 * [private] - nested object.unobserve to ensure we remove all observations
-	 * @param object obj The obj to watch
-	 * @param function callback The callback function that was used when observing
-	 */
-	var _unobserveNested = function(obj, callback) 
-	{
-		for (var key in obj) if (!!obj[key] && typeof obj[key] == 'object' && obj[key].toString() == '[object Object]') _unobserveNested(obj[key], callback);
-		Object.unobserve(obj[key], callback);
-	};
-
-	/**
-	 * [private] - function to run when observing an objects changes, updates bindings to resemble changes
-	 * @param array changes The changes as an array of changes
-	 * @param string path The path to the value observed from scope (in dot form)
-	 */
-	var _observeBinding = function(changes, path)
-	{
-		// fix path
-		path = !path ? '' : path.replace('undefined.', '');
-		if (path.length > 0) path += '.';
-
-		// make changes
-		for (var i = 0; i < changes.length; i++) 
-		{	
-			var change = changes[i];
-			var name = changes[i].name;	
-
-			// forward to any observer function set on scope
-			if (this.scope.observer) this.scope.observer.apply(this.scope, [path + name, change]);
-
-			// push changes to all naffs
-			var matches = this.querySelectorAll("[naff*='" + path + name + "']");
-			for (var i = 0; i < matches.length; i++) if (matches[i].getAttribute('naff').split('|')[1] == path + name) 
-			{
-				_updateBind(matches[i], this.scope);
-			}	
-		}
-	};
-
-	/**
-	 * [private] - get a list of all bindable children with naff attributes
-	 * @param object element The element to start looking from
-	 * @return array An array of dom elements that are only in this scope and have naff attribute
-	 */
-	var _getBindableChildren = function(element)
-	{
-		var nodes = element.childNodes;
-		var matches = [];
-		for (var i = 0; i < nodes.length; i++) 
-		{
-			if (nodes[i].nodeName != '#text' && nodes[i].hasAttribute('naff')) matches.push(nodes[i]);			
-			if (!nodes[i].scope && nodes[i].childNodes.length > 0) matches = matches.concat(_getBindableChildren(nodes[i]));
-		};
-
-		return matches;
-	}; 
 
 	/**
 	 * [private] - Resolve to dom element and return

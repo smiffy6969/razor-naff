@@ -1,6 +1,6 @@
 {
   "name": "razor-naff",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "razorNAFF helper library for web components written in native JS, has custom elements too at razor-naff-components.",
   "homepage": "http://ulsmith.net/razor-naff/razor-naff",
   "author": "Paul Smith (smiffy6969)",
