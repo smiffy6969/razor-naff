@@ -84,7 +84,8 @@ var naff = (function ()
 			{
 				applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
-				this.scope.host = this;
+				var scope = this.scope.host = this;
+				if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail) };
 			}
 
 			if (!!blueprint.created) this.scope.created(); 
@@ -120,7 +121,7 @@ var naff = (function ()
 		host = _getElement(host);
 		if (!host) throw 'Host custom element not specified, please add custom element reference or lookup';
 		
-		var shadow = host.hasAttribute('shadow-dom') || !!shadowDom;
+		var shadow = !!shadowDom;
 		var bind = host.hasAttribute('data-bind') || !!dataBind;
 		var matches = template.content.querySelectorAll('content[select]');
 		var match = template.content.querySelector('content');
@@ -182,6 +183,7 @@ var naff = (function ()
 			{
 				var root = host.createShadowRoot();
 				root.innerHTML = template.innerHTML;
+				if (typeof window.ShadowDOMPolyfill != 'undefined') window.ShadowDOMPolyfill.assert(root); // polyfill those that need it, support is limited
 			}
 			else host.innerHTML = template.innerHTML;
 		}
@@ -191,7 +193,7 @@ var naff = (function ()
 	};
 
 	/**
-	 * [private] - Clone an objects properties and methods
+	 * [public] - Clone an objects properties and methods
 	 * @param object The object to clone
 	 * @return object The cloned object (not a reference to an object)
 	 */
@@ -202,6 +204,19 @@ var naff = (function ()
 	    for (var key in obj) temp[key] = cloneObject(obj[key]);
 	 
 	    return temp;
+	}
+
+	/**
+	 * [public] - Fires an event off, from the provided element, or from scope if element not set
+	 * @param HTML obejct element The element to fire from
+	 * @param string name The name of the event
+	 * @param mixed detail [optional] Any optional details you wish to send
+	 */
+	var fire = function(element, name, detail)
+	{
+		if (!element) element = this;
+		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
+		element.dispatchEvent(event);
 	}
 
 	/* PRIVATE */
@@ -275,6 +290,8 @@ var naff = (function ()
 		getScope: getScope,
 		getParentScope: getParentScope,
 		registerElement: registerElement,
-		cloneObject: cloneObject
+		applyTemplate: applyTemplate,
+		cloneObject: cloneObject,
+		fire: fire
 	};
 })();

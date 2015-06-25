@@ -1,6 +1,9 @@
 # Razor NAFF Web Component Helper Library
 
 
+__Browser Support__ - IE9+, Chrome, FF, Safari, Opera
+
+
 Razor NAFF is a helper library that makes it easier to create native web components written in vanilla javascript, it basically provides two major functions allowing you to traverse custom object scopes, enabling you to easily target logic from within the custom element. In addition to these two functions, should you wish to make things a little simpler with more sugar, there are optional features that can also provide registration such as data binding and templating using the slightly modified rivets and sightglass (via single bundled js file).
 
 For best results, it is probably best to go middle ground, basic components using native javascript, with more complex components (with multiple child elements) using the binding features of rivets and sightglass to make things easier. The end result here would be good optimization of resources. With the optional features comes overhead, data binding is nice but it has it's prices, so NAFF tries to add templating and binding using the simple and lean rivets and sightglass included bundle. It is recommended to keep simple components as vanilla as possible for speed and stability.
@@ -76,17 +79,59 @@ document.querySelector('x-foo').someCustomElementFunction();
 The difference with NAFF and native selection is that in the NAFF example, we search backwards out through the parents until we find the scope of the custom element, meaning our custom element logic will work on all instances of `<x-foo></x-foo>` independantly without issue. The native selector method will only work on the first x-foo element it finds. This is how we can map functions from templates in custom element children direct to the containing custom element scope. This is handy as it is the place where we store all logic associated with the custom element.
 
 
-The other benefit of using naff is that it allows us to abstract back the use of shadow dom. quite simply, shadow dom allows us to encapsulate our custom elements html, style and logic to stop outside things affecting the web component as well as inside things leaching out. Whilst you can build your own components using shadow dom, or just normal light dom (where there is no exncapsulation of html, style and logic), all naff web components are dual use. Simply add the 'shadow-dom' attribute to your custom element call `<x-foo shadow-dom></x-foo>`, to have your elements content created in a shadow root for encapuslation when using the naff register function, or you can set the shadowDom property, setting it to true when registering your components through naff (non vanilla).
+The other benefit of using naff is that it allows us to abstract back the use of shadow dom should we wish to use it. quite simply, shadow dom allows us to encapsulate our custom elements html, style and logic to stop outside things affecting the web component as well as inside things leaching out. Whilst you can build your own components using shadow dom, all naff web components do not use shadow dom.
 
 
-You may want to encapsulate all the time, some of the time, or you may want outside logic and style to bleed in when using tools like bootstrap, in the naff components we have created all logic and style in root and not the template, then used '/deep/' to reference back in with specific tag name declarations, this allows you to use either shadow dom or light dom (default). Reasons for this are primarily due to some browsers still not shipping with shadow dom support or shadow dom active (support but must be turned on by user in browser config), as such we are offering the best of both worlds, all still with a single load of style and logic per import.
+The other major benefit of using shadow dom was the ability to use light dom inclusion, to embed content into your web component from your html document like so...
+
+
+```html
+<!-- the web component template -->
+<template id="naff-test"><strong><content></content></strong></naff-test>
+
+<!-- using the new component in your html document with light dom content (the 'hello' text, or this can be more html) -->
+<naff-test>hello</naff-test>
+
+<!-- rendered once web component registers is a hybrid of the web component template and any contents of light dom supplied if component allows this just like shadow dom does -->
+<naff-test><strong>hello</strong></naff-test>
+```
+
+
+razorNAFF has reproduced this functionality so you can get the benefits of light dom without the need for using shadow dom, whilst still allowing css and logic to bleed in if you like using things such as bootstrap!. You can also use the same shadow dom concepts to target content in the element to appear in specific places inside the template as follows.
+
+
+```html
+<!-- the web component template -->
+<template id="naff-test">
+	<h1><content select="heading"></content></h1>
+	<p>This is from template</p>
+	<p><content select="main"></content></p>
+</naff-test>
+
+<!-- using the new component in your html document with light dom content (the 'hello' text, or this can be more html) -->
+<naff-test>
+	<heading>This is a heading</heading>
+	<main>This is main contents</main>
+</naff-test>
+
+<!-- rendered once web component registers is a hybrid of the web component template and any contents of light dom supplied if component allows this just like shadow dom does -->
+<naff-test>
+	<h1>This is a heading</h1>
+	<p>This is from template</p>
+	<p>This is main contents</p>
+</naff-test>
+```
+
+
+The reasons for this is mainly due to lack of browser support or decent polyfills for shadow dom at present. If you do wish to use shadow dom with your own components, simply add shadowDom property, setting it to true when registering your components through naff (non vanilla) but please be aware support is sparse and polyfills are very limited, so for now it is recommended to use the benefits of light dom provided by naff and be more specific with naming inside your web component when it comes to class names. To keep things running smooth and stop bleed in where you do not want it, prefixing private only class names with a hyphon will help, or you can simple use your id name as a prefix and always start your style with the tag name (which is the id name of the template). 
+
 
 Now when you use naff to get the working scope, it will still get you the root custom element even if working in a shadow root, something that you cannot do using just querySelector(), so using naff to resolve scope, shadow dom should not cause you any issues.
 
 
 ```html
 <template id="x-foo">
-	<div class="test">
+	<div class="-test">
 		<button onclick="naff.getScope(this).someFunctionOfXFoo()"></button>
 	</div>
 </template>
@@ -100,14 +145,14 @@ If you wish to go down the vanilla path, the below as a good starting point for 
 
 
 ```html
-<!-- STYLE - Encapsulate all css to tag name to stop bleed out of component style, use deep to ensure both normal or shadow dom usage -->
+<!-- STYLE - Encapsulate all css to tag name -->
 <style type="text/css">
-	html /deep/ button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
+	x-foo -test button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
 </style>
 
 <!-- TEMPLATE -->
 <template id="x-foo">
-	<div class="test">
+	<div class="-test">
 		<button onclick="naff.getScope(this).pushed()"></button>
 		<content></content>
 	</div>
@@ -161,14 +206,14 @@ From, this point on, vanilla JS is up to you... Now on to using the naff helpers
 
 
 ```html
-<!-- STYLE - Encapsulate all css to tag name to stop bleed out of component style, use deep to ensure both normal or shadow dom usage -->
+<!-- STYLE - Encapsulate all css to tag name -->
 <style type="text/css">
-	html /deep/ button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
+	x-foo -test button { opacity: 0.9; border: 1px solid #bbb; background: #ddd; color: #222; cursor: pointer; }
 </style>
 
 <!-- TEMPLATE -->
 <template id="x-foo">
-	<div class="test">
+	<div class="-test">
 		<button onclick="naff.getScope(this).pushed()"></button>
 		<content></content>
 	</div>
@@ -181,7 +226,7 @@ From, this point on, vanilla JS is up to you... Now on to using the naff helpers
 
 		name: 'x-foo', 		// Custome element name
 		extends: null, 		// do we extend another element
-		shadowDom: false, 	// should we force shadow dom on all instances
+		shadowDom: false, 	// should we force shadow dom on all instances for browser with support or try to polyfill support (experimental at best!)
 		dataBind: false, 	// do we want to use data-binding and templating in template
 
 	 	// built in methods
@@ -227,6 +272,7 @@ From, this point on, vanilla JS is up to you... Now on to using the naff helpers
 
 		pushed: function(event)
 		{
+			this.fire('clicked', 'optional-extra-details'); // fire event on host element, can also use naff.fire(this.host, 'clicked', 'optional')
 			this.clickedTimes++;
 			console.log(clickedTimes);
 		}
@@ -235,7 +281,7 @@ From, this point on, vanilla JS is up to you... Now on to using the naff helpers
 ```
 
 
-First of all, styling, we have placed this outside of the tmeplate because we are allowing the component to be used in light and shadow dom, this will ensure styling only loads once and targets the correct component in both cases. If you are going to force `shadowDom: true` in your registration, then you can just put the style in the template, omit the /deep/ calls, this will load the style for each dom fragment like so...
+First of all, styling, we have placed this outside of the template because we are noy using shadow dom, we are using light dom ability as supplied by naff, this will ensure styling only loads once and targets the correct component in both cases. If you are going to force `shadowDom: true` in your registration, then you can just put the style in the template, this will load the style for each dom fragment like so...
 
 
 ```html
@@ -251,7 +297,7 @@ First of all, styling, we have placed this outside of the tmeplate because we ar
 ```
 
 
-Again this is up to you, whilst I prefer the more universal approach, which only loads style once, the latter loads style into a forced shadow dom element, meaning more style is loaded (css loads for each encapsulated element in its document fragment), but it is cleaner styling. I am not going to push one method over another, I prefer to output style once, not ten times for ten instances of your web component, even if you have to deep link back in, it is simply less code in the dom (see for yourself, use shadow dom and you will see the same style in each fragment).
+Again this is up to you, if you do wish to go shadow dom you will now see style loaded in each fragment created.
 
 
 The button click in the html is mapped back to the root scope of the custom element instance (not the actual xfoo template object above... the instance of x-foo in the dom that was created from the object template above, think of the above as a blueprint that is copied to each element instance. Always ensure when working inside the proto structure methods, always refer to 'this' as the base scope as this will be the specific element instance in the dom.
@@ -262,7 +308,7 @@ You can take this one step further, by taking advantage of the data binding and 
 
 ```html
 <template id="x-foo">
-	<div class="test">
+	<div class="-test">
 		<button naff-on-click="pushed()"></button>
 	</div>
 </template>
@@ -295,7 +341,7 @@ You could even map the clickedTimes property back to an element for some great b
 
 ```html
 <template id="x-foo">
-	<div class="test">
+	<div class="-test">
 		<p>Clicked <span naff-text="clickedTimes"></span></p>
 		<p>Clicked {{clickedTimes}}</p>
 		<button naff-on-click="pushed()"></button>
@@ -330,7 +376,7 @@ Now you should see your clicks automatically updating the dom using element attr
 ## Custom Properties/Methods
 
 
-When creating custom properties, please ensure you keep away from using the following names, as these will clash with default properties...
+When creating custom properties, please ensure you keep away from using the following names, as these will clash with default properties/methods...
 
 * host
 * template
@@ -342,6 +388,7 @@ When creating custom properties, please ensure you keep away from using the foll
 * attached()
 * detached()
 * attributeChanged()
+* fire()
 
 
 All the above are default names for properties and methods, they are either set by default or configured by you in the registration of the component. Only use these when adding default functions or configuring the registration. Using this.* to set any of the above will result in default properties/methods changing.
@@ -477,10 +524,31 @@ This function is run when custom element attributes change, this is the actual i
 ```
 
 
-## customFunction(event, [propertyA, ...])
+## fire(name [string], details [mixed])
 
 
-Any custom functions created and used in the binding process, for instance `naff-on-click="test('boo', tested)"`, will map all properties, resolving them to scope properties and append them to the function targetted...
+This function can be used to fire off custom events from your component, which is handy when you need to provide feedback on things that happen inside. You can override this if you wish, or just use the default fire function provided by naff.
+
+
+* name - The name of the event
+* details - [optional] Any extra details like strings, literals, objects etc
+
+
+```javascript
+// ...
+	clicked: function(event)
+	{
+		this.fire('clicked');
+		this.fire('clicked', event);
+	},
+// ...
+```
+
+
+## customFunction([event, [propertyA, ...]])
+
+
+Any custom functions created and used in the binding process, for instance `naff-on-click="test('boo', tested)"`, will map all properties, resolving them to scope properties and append them to the function targetted along with the event that spawned it. If you do not use a custom function in the binding process, simply use it as any other method.
 
 
 ```javascript
