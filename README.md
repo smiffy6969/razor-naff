@@ -35,12 +35,13 @@ bower install razor-naff --save
 ## Setup
 
 
-In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs.
+In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...) and object.observe (for object watching). You can install these seperately, the easiest way is using bower installing webcomponentsjs and object.observe which can both be found on github. You can of course use your own if you wish, these are the two I use so I have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill for object observing and maybe xtags for web components, by all means give it a whirl.
 
 
 ```html
-<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
-<script src="bower_components/razor-naff/build/naff.bundled.min.js"></script>
+<script type="text/javascript" src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+<script type="text/javascript" src="bower_components/object.observe/dist/object-observe.min.js"></script>
+<script type="text/javascript" src="bower_components/razor-naff/build/naff.bundled.min.js"></script>
 ```
 
 
@@ -597,4 +598,94 @@ Binding reference - [http://rivetsjs.com/docs/reference/]
 
 Many many thanks to Michael Richards for his work on this exceptional tool [https://github.com/mikeric].
 
-PLEASE NOTE: Do not use the base version of rivets and sightglass with naff, please use the bundled version to keep scope isolation
+PLEASE NOTE: Do not use the base version of rivets and sightglass with naff, please use the bundled version to keep scope isolation.
+
+
+## Creating a Single Page Application
+
+
+Web components are create for modular code, but they will not be that great in a plain old html document (unless you are building a static site). If you wish to use your components in an application, then NAFF can also help with registerApplication(). NAFF can take your html, bundle it into an app element (pretty much like a custom element) and allow you to start using this as a basis for your application. You can embed apps in apps (use getParentScope to traverse back and target the child app to traverse forward), and you can do all the nice things in your app you can in components, it's just a little more sparse to begin with.
+
+Once of the benefits of using the NAFF application method is that you do not have to worry about waiting for the document to be ready, as the app is bootstrapped to the element once its ready. In addition to this, you can add a resolve attribute to your app element to defer rendering until binding is complete, fading the app in when ready. Once you have your app set out, you can use the ready function to get things going, and all the databinding goodness to makeyour app work.
+
+
+### Your Main HTML Document
+
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>razorNAFF Application Demo</title>
+
+		<!-- Polyfill native API's that are missing -->
+		<script type="text/javascript" src="../../webcomponentsjs/webcomponents.min.js"></script>
+		<script type="text/javascript" src="../../object.observe/dist/object-observe.min.js"></script>
+
+		<!-- Load the naff helper library used by the web components -->
+		<script type="text/javascript" src="../build/naff.bundled.min.js"></script>
+
+		<!-- load app specific logic and style -->
+		<link rel="stylesheet" type="text/css" href="naff-app.css">
+		<script type="text/javascript" src="naff-app.js"></script>
+		
+		<!-- sugar for demo page -->
+	    <style type="text/css">
+	    	* { font-family: sans-serif; }
+	    </style>
+	</head>
+	<body>
+		<!-- Example NAFF application, for demos on creating web components, please refer to razor-naff-components in github -->
+		<!-- naff-app is the name of the app, resolve is to defer rendering until binding has complete, if you so wish... -->
+		<naff-app resolve>
+			<h1>Test razorNAFF Application</h1>
+			<p>Test application: {{properties.test}}: {{properties.clickedTimes}}</p>
+			<button naff-on-click="clicked()">Increment</button>
+		</naff-app>
+	</body>
+</html>
+```
+
+
+Here you need to add in your polyfill, add in naff.bundled and from this point it is up to you how you structure things. I have chosen to load app level logic and styling from seperate files to keep things clean and take advantage of less, so I pull in these files now. If you are importing any other web components, do this before your app calls. If you wish to pull in your app as a html import, you will need to bundle your style and logic in the same file as assets cannot be loaded from imported html documents.
+
+
+The above code sets up whats needed, then regsiteres a new app elememnt `<naff-app resolve></naff-app>'. You can call this what you like, just ensure it has one hyphon and is only letters, numbers and hyphons starting with a letter or hyphon (you can use underscores too but html looks better if you stick with hyphons). The extra attribute here is the resolver, it defers rendering of the app until the app is registered and attached to the dom, fading the app in once bootstrapped to the element.
+
+
+Inside the app element, you can now do your magic, using the binding features of rivets and sightglass, with all logic refering back to your project js file.
+
+
+```javascript
+/**
+ * Sample razorNAFF application, bootstrapping the to <naff-app></naff-app> elements as a seperate instance if used more than once
+ * @param name The name of the element to bootstrap too
+ * @param properties The object holding all properties for app (stops issues with binding loss on repeats in rivets), change this name if you wish
+ * @function ready When the app is ready to rock, this is your main place for doing cool stuff
+ */
+naff.registerApplication({
+	name: 'naff-app',
+
+	properties: {
+		test: 'yeah!!',
+		clickedTimes: 0
+	},
+
+	ready: function()
+	{		
+		// Initial setup
+		console.log('app is ready');
+	},
+
+	clicked: function()
+	{
+		this.properties.clickedTimes++;
+	}
+});
+```
+
+
+We regsiter the new app as a custom element application, bootstraping the name to the elements found (so you can use the app more than once per page, and embed apps in apps too). It is best to create some sort of properties object to hold all app properties, this stops binding issues when using repeats in your binding, pluss it keeps things neet and makes you declare all properties (use something: null to declare new property). From this point on your good to go, the ready function is provided as a kickstart to your app, and everything else is up to you. All features off application elements are the same as custom elements, we just set it up a little different, so all of the above web components info works here too. Simply put we are just creating a simple new element to house our app without the templating stuff.

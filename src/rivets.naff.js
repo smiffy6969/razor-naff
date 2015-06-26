@@ -990,7 +990,7 @@
     priority: 3000,
     bind: function(el) {
       if (!(el.tagName === 'INPUT' && el.type === 'radio')) {
-        this.event = el.tagName === 'SELECT' ? 'change' : 'input';
+        this.event = el.tagName === 'SELECT' || el.tagName === 'NAFF-SWITCH' ? 'change' : 'input';
         return Rivets.Util.bindEvent(el, this.event, this.publish);
       }
     },

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>razorNAFF Application Demo</title>
+
+		<!-- Polyfill native API's if missing -->
+		<script type="text/javascript" src="../../webcomponentsjs/webcomponents.min.js"></script>
+		<script type="text/javascript" src="../../object.observe/dist/object-observe.min.js"></script>
+
+		<!-- Load the naff helper library used by the web components -->
+		<script type="text/javascript" src="../build/naff.bundled.min.js"></script>
+
+		<!-- load app specific logic and style -->
+		<link rel="stylesheet" type="text/css" href="naff-app.css">
+		<script type="text/javascript" src="naff-app.js"></script>
+		
+		<!-- sugar for demo page -->
+	    <style type="text/css">
+	    	* { font-family: sans-serif; }
+	    </style>
+	</head>
+	<body>
+		<!-- Example NAFF application, for demos on creating web components, please refer to razor-naff-components in github -->
+		<!-- naff-app is the name of the app, resolve is to defer rendering until binding has complete, if you so wish... -->
+		<naff-app resolve>
+			<h1>Test razorNAFF Application</h1>
+			<p>Test application: {{properties.test}}: {{properties.clickedTimes}}</p>
+			<button naff-on-click="clicked()">Increment</button>
+		</naff-app>
+	</body>
+</html>

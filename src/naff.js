@@ -32,6 +32,14 @@ var naff = (function ()
 		});
 	}
 
+	if (!document.head.querySelector('style#naff-resolver'))
+	{
+		var resolver = document.createElement("STYLE");
+		resolver.setAttribute('id', 'naff-resolver');
+		resolver.innerHTML = "*[resolve]{display:block;opacity:1;-webkit-transition:opacity 1s ease-in-out;-moz-transition:opacity 1s ease-in-out;transition:opacity 1s ease-in-out;}*[unresolved]{opacity:0;}";
+		document.head.appendChild(resolver);
+	}
+
 	/* PUBLIC */
 
 	/**
@@ -66,6 +74,39 @@ var naff = (function ()
 	}
 
 	/**
+	 * [public] - Register a new custom element as an app, creating a naff working scope for the interface but no templating
+	 * @param object blueprint The custom element blueprint to create the custom element from
+	 */
+	var registerApplication = function(blueprint)
+	{
+		// create proto
+		var proto = Object.create(HTMLElement.prototype);
+
+		// forward callbacks
+		proto.createdCallback = function()
+		{	
+			if (this.hasAttribute('resolve')) this.setAttribute('unresolved', '');
+			this.scope = cloneObject(blueprint);
+		};
+
+		proto.attachedCallback = function()
+		{
+			var app = this;
+			rivets.bind(app, app.scope);
+
+			// ensure end of stack
+			setTimeout(function()
+			{
+				app.removeAttribute('unresolved');
+				if (typeof app.scope.ready != 'undefined') app.scope.ready(); 
+			}, 0);
+		};
+		
+		// register custom element
+		document.registerElement(blueprint.name, {prototype: proto});
+	};
+
+	/**
 	 * [public] - Register a new custom element, creating a naff working scope for the interface
 	 * @param object blueprint The custom element blueprint to create the custom element from
 	 */
@@ -84,10 +125,10 @@ var naff = (function ()
 			{
 				applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
-				var scope = this.scope.host = this;
-				if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail) };
 			}
 
+			var scope = this.scope.host = this;
+			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail) };
 			if (!!blueprint.created) this.scope.created(); 
 		};
 
@@ -215,6 +256,7 @@ var naff = (function ()
 	var fire = function(element, name, detail)
 	{
 		if (!element) element = this;
+		if (element.host) element = element.host;
 		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
 		element.dispatchEvent(event);
 	}
@@ -290,6 +332,7 @@ var naff = (function ()
 		getScope: getScope,
 		getParentScope: getParentScope,
 		registerElement: registerElement,
+		registerApplication: registerApplication,
 		applyTemplate: applyTemplate,
 		cloneObject: cloneObject,
 		fire: fire
