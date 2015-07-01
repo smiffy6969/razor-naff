@@ -990,7 +990,7 @@
     priority: 3000,
     bind: function(el) {
       if (!(el.tagName === 'INPUT' && el.type === 'radio')) {
-        this.event = el.tagName === 'SELECT' || el.tagName === 'NAFF-SWITCH' ? 'change' : 'input';
+        this.event = el.tagName === 'SELECT' ? 'change' : 'input';
         return Rivets.Util.bindEvent(el, this.event, this.publish);
       }
     },
@@ -1019,6 +1019,7 @@
             return _results;
           }
         } else if ((value != null ? value.toString() : void 0) !== ((_ref3 = el.value) != null ? _ref3.toString() : void 0)) {
+          if (el.scope) el.setAttribute('value', value != null ? value : '');
           return el.value = value != null ? value : '';
         }
       }
@@ -1215,11 +1216,32 @@
     }
   };
 
-  Rivets["public"].binders['*'] = function(el, value) {
-    if (value != null) {
-      return el.setAttribute(this.type, value);
-    } else {
-      return el.removeAttribute(this.type);
+  Rivets["public"].binders['*'] = {
+    publishes: true,
+    priority: 3000,
+    bind: function(el) {
+        this.event = this.type + 'attributechanged';
+        return Rivets.Util.bindEvent(el, this.event, this.publish);
+    },
+    unbind: function(el) {
+        return Rivets.Util.unbindEvent(el, this.event, this.publish);
+    },
+    routine: function(el, value) {
+        // NAFF check for updates to attributes from naff and adjust
+        if (this.publish.arguments !== null && this.publish.arguments.length == 1)
+        {
+            var path = this.keypath.split('.');
+            this.model[path[path.length-1]] = this.publish.arguments[0].detail.newVal;
+        }
+        else
+        {
+            // update from binding
+            if (value != null) {
+              return el.setAttribute(this.type, value);
+            } else {
+              return el.removeAttribute(this.type);
+            }
+        }
     }
   };
 

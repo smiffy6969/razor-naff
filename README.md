@@ -4,7 +4,7 @@
 __Browser Support__ - IE9+, Chrome, FF, Safari, Opera
 
 
-Razor NAFF is a helper library that makes it easier to create native web components written in vanilla javascript, it basically provides two major functions allowing you to traverse custom object scopes, enabling you to easily target logic from within the custom element. In addition to these two functions, should you wish to make things a little simpler with more sugar, there are optional features that can also provide registration such as data binding and templating using the slightly modified rivets and sightglass (via single bundled js file).
+Razor NAFF is a helper library that makes it easier to create native web components written in vanilla javascript, it basically provides two major functions allowing you to traverse custom object scopes, enabling you to easily target logic from within the custom element. In addition to these two functions, should you wish to make things a little simpler with more sugar, there are optional features that can also provide registration such as data binding and templating using the slightly modified rivets and sightglass (via single bundled js file) as well as event firing.
 
 For best results, it is probably best to go middle ground, basic components using native javascript, with more complex components (with multiple child elements) using the binding features of rivets and sightglass to make things easier. The end result here would be good optimization of resources. With the optional features comes overhead, data binding is nice but it has it's prices, so NAFF tries to add templating and binding using the simple and lean rivets and sightglass included bundle. It is recommended to keep simple components as vanilla as possible for speed and stability.
 
@@ -35,12 +35,11 @@ bower install razor-naff --save
 ## Setup
 
 
-In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...) and object.observe (for object watching). You can install these seperately, the easiest way is using bower installing webcomponentsjs and object.observe which can both be found on github. You can of course use your own if you wish, these are the two I use so I have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill for object observing and maybe xtags for web components, by all means give it a whirl.
+In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...), the easiest way is using bower installing webcomponentsjs can be found on github. You can of course use your own if you wish, this is what we use as standard, we have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill for object observing and maybe xtags for web components, by all means give it a whirl.
 
 
 ```html
 <script type="text/javascript" src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
-<script type="text/javascript" src="bower_components/object.observe/dist/object-observe.min.js"></script>
 <script type="text/javascript" src="bower_components/razor-naff/build/naff.bundled.min.js"></script>
 ```
 
@@ -124,7 +123,7 @@ razorNAFF has reproduced this functionality so you can get the benefits of light
 ```
 
 
-The reasons for this is mainly due to lack of browser support or decent polyfills for shadow dom at present. If you do wish to use shadow dom with your own components, simply add shadowDom property, setting it to true when registering your components through naff (non vanilla) but please be aware support is sparse and polyfills are very limited, so for now it is recommended to use the benefits of light dom provided by naff and be more specific with naming inside your web component when it comes to class names. To keep things running smooth and stop bleed in where you do not want it, prefixing private only class names with a hyphon will help, or you can simple use your id name as a prefix and always start your style with the tag name (which is the id name of the template). 
+The reasons for this is mainly due to lack of browser support or decent polyfills for shadow dom at present. If you do wish to use shadow dom with your own components, simply add shadowDom property, setting it to true when registering your components through naff (non vanilla) but please be aware support is sparse and polyfills are very limited, so for now it is recommended to use the benefits of light dom provided by naff and be more specific with naming inside your web component when it comes to class names. To keep things running smooth and stop bleed in where you do not want it, prefixing private only class names with a hyphon will help, or you can simple use your id name as a prefix and always start your style with the tag name (which is the id name of the template).
 
 
 Now when you use naff to get the working scope, it will still get you the root custom element even if working in a shadow root, something that you cannot do using just querySelector(), so using naff to resolve scope, shadow dom should not cause you any issues.
@@ -261,7 +260,8 @@ From, this point on, vanilla JS is up to you... Now on to using the naff helpers
 
 		attributeChanged: function(name, oldVal, newVal)
 		{
-			// when host attribute changes
+			// when host attribute changes, event is fired on change automatically
+			// *attributechanged where * = name of attribute, along with detail of old and new values
 			console.log('attributeChanged');
 		},
 
@@ -456,10 +456,10 @@ This is the custom element contents as you see it in the template, use this to g
 ## Default Methods
 
 
-## created() 
+## created()
 
 
-When the custom element is created, this function is fired, use for setting things up.
+When the custom element is created, this function is fired, use for setting things up, created event is triggered from host element after completion.
 
 
 ```javascript
@@ -475,7 +475,7 @@ When the custom element is created, this function is fired, use for setting thin
 ## attached()
 
 
-When the custom element is attached to the dom, this function is fired, use this as your starting point, treat as the dom is ready.
+When the custom element is attached to the dom, this function is fired, use this as your starting point, treat as the dom is ready, attached event is triggered from host element after completion
 
 
 ```javascript
@@ -491,12 +491,12 @@ When the custom element is attached to the dom, this function is fired, use this
 ## detached()
 
 
-When the custom element is removed from the dom, this function is fired, use this to clean things up, free memory, remove listeners etc.
+When the custom element is removed from the dom, this function is fired, use this to clean things up, free memory, remove listeners etc. Detached event is triggered from host element after completion
 
 
 ```javascript
 // ...
-	attached: function()
+	detached: function()
 	{
 		runSomething();
 	},
@@ -507,7 +507,7 @@ When the custom element is removed from the dom, this function is fired, use thi
 ## attributeChanged(name [string], oldVal [string], newVal [string])
 
 
-This function is run when custom element attributes change, this is the actual instance in the dom. When an attribute is added, removed or changed, this function will report those changes to allow you to update your custom element how you wish.
+This function is run when custom element attributes change, this is the actual instance in the dom. When an attribute is added, removed or changed, this function will report those changes to allow you to update your custom element how you wish, 'attribute name'attributechanged event is triggered from host element after completion with detail of old and new values e.g. colorattributechanged.
 
 
 * name - The name of the attribute changed
@@ -631,7 +631,7 @@ Once of the benefits of using the NAFF application method is that you do not hav
 		<!-- load app specific logic and style -->
 		<link rel="stylesheet" type="text/css" href="naff-app.css">
 		<script type="text/javascript" src="naff-app.js"></script>
-		
+
 		<!-- sugar for demo page -->
 	    <style type="text/css">
 	    	* { font-family: sans-serif; }
@@ -675,7 +675,7 @@ naff.registerApplication({
 	},
 
 	ready: function()
-	{		
+	{
 		// Initial setup
 		console.log('app is ready');
 	},
@@ -688,4 +688,4 @@ naff.registerApplication({
 ```
 
 
-We regsiter the new app as a custom element application, bootstraping the name to the elements found (so you can use the app more than once per page, and embed apps in apps too). It is best to create some sort of properties object to hold all app properties, this stops binding issues when using repeats in your binding, pluss it keeps things neet and makes you declare all properties (use something: null to declare new property). From this point on your good to go, the ready function is provided as a kickstart to your app, and everything else is up to you. All features off application elements are the same as custom elements, we just set it up a little different, so all of the above web components info works here too. Simply put we are just creating a simple new element to house our app without the templating stuff.
+We register the new app as a custom element application, bootstraping the name to the elements found (so you can use the app more than once per page, and embed apps in apps too). It is best to create some sort of properties object to hold all app properties, this stops binding issues when using repeats in your binding, pluss it keeps things neet and makes you declare all properties (use something: null to declare new property). From this point on your good to go, the ready function is provided as a kickstart to your app, and everything else is up to you. All features off application elements are the same as custom elements, we just set it up a little different, so all of the above web components info works here too. Simply put we are just creating a simple new element to house our app without the templating stuff.

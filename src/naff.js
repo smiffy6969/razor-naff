@@ -2,7 +2,7 @@
 // version: (please see package.js)
 // author: Paul Smith
 // license: MIT
-var naff = (function () 
+var naff = (function ()
 {
     'use strict';
 
@@ -17,10 +17,10 @@ var naff = (function ()
 			templateDelimiters: ['{{', '}}'],
 
 			// Augment the event handler of the on-* binder
-			handler: function(target, event, binding) 
+			handler: function(target, event, binding)
 			{
 				// need to send in all arguments, resolve them to model
-				var target = getScope(target);
+				target = getScope(target);
 				var parts = binding.keypath.replace(')', '').split('(');
 				var args = parts[1].split(',');
 
@@ -55,7 +55,7 @@ var naff = (function ()
 		var parent = origin;
 		while (!!parent.tagName && !parent.scope) parent = parent.parentNode;
 		return !!parent.scope ? parent.scope : (parent.toString() === '[object ShadowRoot]' ? parent.host.scope : null);
-	}
+	};
 
 	/**
 	 * [public] - Get origins parent working scope (custom elements parent custom element root)
@@ -67,11 +67,11 @@ var naff = (function ()
 	{
 		origin = _getOrigin(origin);
 		if (!origin) throw 'Origin not specified, please add starting point for scope lookup';
-		
+
 		var parent = getScope(origin).parentNode;
 		while (!!parent.tagName && !(!!name && parent.tagName == name.toUpperCase() && parent.scope) && !(!name && parent.scope)) parent = parent.parentNode;
 		return !!parent.scope ? parent.scope : (parent.toString() === '[object ShadowRoot]' ? parent.host.scope : null);
-	}
+	};
 
 	/**
 	 * [public] - Register a new custom element as an app, creating a naff working scope for the interface but no templating
@@ -84,7 +84,7 @@ var naff = (function ()
 
 		// forward callbacks
 		proto.createdCallback = function()
-		{	
+		{
 			if (this.hasAttribute('resolve')) this.setAttribute('unresolved', '');
 			this.scope = cloneObject(blueprint);
 		};
@@ -98,10 +98,10 @@ var naff = (function ()
 			setTimeout(function()
 			{
 				app.removeAttribute('unresolved');
-				if (typeof app.scope.ready != 'undefined') app.scope.ready(); 
+				if (typeof app.scope.ready != 'undefined') app.scope.ready();
 			}, 0);
 		};
-		
+
 		// register custom element
 		document.registerElement(blueprint.name, {prototype: proto});
 	};
@@ -120,33 +120,37 @@ var naff = (function ()
 		proto.createdCallback = function()
 		{
 			this.scope = cloneObject(blueprint);
-			
-			if (!!template) 
+
+			if (!!template)
 			{
 				applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
 			}
 
 			var scope = this.scope.host = this;
-			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail) };
-			if (!!blueprint.created) this.scope.created(); 
+			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
+			if (!!blueprint.created) this.scope.created();
+            fire(this, 'created');
 		};
 
 		proto.attachedCallback = function()
 		{
 			if (!!blueprint.attached) this.scope.attached();
+            fire(this, 'attached');
 		};
 
 		proto.detachedCallback = function()
 		{
 			if (!!blueprint.detached) this.scope.detached();
+            fire(this, 'detached');
 		};
 
 		proto.attributeChangedCallback = function(name, oldVal, newVal)
 		{
 			if (!!blueprint.attributeChanged) this.scope.attributeChanged(name, oldVal, newVal);
-		};
-		
+		    fire(this, name + 'attributechanged', {name: name, oldVal: oldVal, newVal: newVal});
+        };
+
 		// register custom element
 		var protoWrap = {prototype: proto};
 		if (!!blueprint.extends) protoWrap.extends = blueprint.extends;
@@ -161,55 +165,56 @@ var naff = (function ()
 	{
 		host = _getElement(host);
 		if (!host) throw 'Host custom element not specified, please add custom element reference or lookup';
-		
+
 		var shadow = !!shadowDom;
 		var bind = host.hasAttribute('data-bind') || !!dataBind;
 		var matches = template.content.querySelectorAll('content[select]');
 		var match = template.content.querySelector('content');
+        var content, root, ele;
 
-		if (matches.length > 0) 
+		if (matches.length > 0)
 		{
-			var content = {};
+			content = {};
 
 			// cache content from host
-			for (var i = 0; i < matches.length; i++) 
+			for (var i = 0; i < matches.length; i++)
 			{
 				if (!matches[i].hasAttribute('select')) continue;
 				var name = matches[i].getAttribute('select');
 				content[name] = host.querySelector(name);
-			};
+			}
 
 			// apply template
-			if (shadow)
+            if (shadow)
 			{
-				var root = host.createShadowRoot();
+				root = host.createShadowRoot();
 				root.innerHTML = template.innerHTML;
 			}
 			else host.innerHTML = template.innerHTML;
-			
+
 			// apply any content
 			for (var key in content)
 			{
-				var ele = shadow ? root.querySelector('content[select=' + key + ']') : host.querySelector('content[select=' + key + ']');
+				ele = shadow ? root.querySelector('content[select=' + key + ']') : host.querySelector('content[select=' + key + ']');
 				ele.parentNode.insertBefore(content[key], ele);
 				ele.parentNode.removeChild(ele);
 			}
-		} 
+		}
 		else if (match)
-		{	
+		{
 			// cache content from host
-			var content = host.innerHTML;
+			content = host.innerHTML;
 
 			// apply template
 			if (shadow)
 			{
-				var root = host.createShadowRoot();
+				root = host.createShadowRoot();
 				root.innerHTML = template.innerHTML;
 			}
 			else host.innerHTML = template.innerHTML;
 
 			// apply content
-			var ele = shadow ? root.querySelector('content') : host.querySelector('content');
+			ele = shadow ? root.querySelector('content') : host.querySelector('content');
 			ele.innerHTML = content;
 
 			// remove parent content div
@@ -218,11 +223,11 @@ var naff = (function ()
 			ele.parentNode.replaceChild(fragment, ele);
 		}
 		else
-		{	
+		{
 			// apply template
 			if (shadow)
 			{
-				var root = host.createShadowRoot();
+				root = host.createShadowRoot();
 				root.innerHTML = template.innerHTML;
 				if (typeof window.ShadowDOMPolyfill != 'undefined') window.ShadowDOMPolyfill.assert(root); // polyfill those that need it, support is limited
 			}
@@ -243,9 +248,9 @@ var naff = (function ()
 	    if (obj === null || obj.toString() !== '[object Object]') return obj;
 	    var temp = obj.constructor();
 	    for (var key in obj) temp[key] = cloneObject(obj[key]);
-	 
+
 	    return temp;
-	}
+	};
 
 	/**
 	 * [public] - Fires an event off, from the provided element, or from scope if element not set
@@ -259,7 +264,7 @@ var naff = (function ()
 		if (element.host) element = element.host;
 		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
 		element.dispatchEvent(event);
-	}
+	};
 
 	/* PRIVATE */
 
@@ -284,15 +289,15 @@ var naff = (function ()
 			// property with . seperators and [] sperators
 			var dots = data.split('.');
 			var result = model;
-			for (var i = 0; i < dots.length; i++) 
+			for (var i = 0; i < dots.length; i++)
 			{
 				var bracks = dots[i].split('[');
-				for (var c = 0; c < bracks.length; c++) 
+				for (var c = 0; c < bracks.length; c++)
 				{
 					var key = !/^[0-9 ]+$/i.test(bracks[c]) ? bracks[c].replace(/[\'\"\] ]/g, '') : parseInt(bracks[c].replace(/[ ]/g, ''));
 					result = !result ? result : result[key];
-				};
-			}				
+				}
+			}
 
 			return result;
 		}
@@ -311,7 +316,7 @@ var naff = (function ()
 			case 'string': return document.querySelector(element);
 			case 'object': return !!element.scope ? element.parentNode : element;
 		}
-	}
+	};
 
 	/**
 	 * [private] - Resolve to dom element and return
@@ -326,7 +331,7 @@ var naff = (function ()
 			case 'string': return document.querySelector(element);
 			case 'object': return element;
 		}
-	}
+	};
 
 	return {
 		getScope: getScope,
