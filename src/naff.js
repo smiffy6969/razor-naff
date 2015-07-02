@@ -25,8 +25,9 @@ var naff = (function ()
 				var args = parts[1].split(',');
 
 				for (var i = 0; i < args.length; i++) args[i] = _parseData(args[i], target);
+				if (typeof target[parts[0]] == 'undefined') throw 'Error: cannot find function \'' + parts[0] + '\' in element scope';
 
-				args.unshift(event);
+                args.unshift(event);
 				target[parts[0]].apply(target, args);
 			}
 		});
@@ -196,7 +197,7 @@ var naff = (function ()
 			for (var key in content)
 			{
 				ele = shadow ? root.querySelector('content[select=' + key + ']') : host.querySelector('content[select=' + key + ']');
-				ele.parentNode.insertBefore(content[key], ele);
+            	if (!!content[key]) ele.parentNode.insertBefore(content[key], ele);
 				ele.parentNode.removeChild(ele);
 			}
 		}

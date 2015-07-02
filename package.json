@@ -1,6 +1,6 @@
 {
   "name": "razor-naff",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "razorNAFF helper library for creating web components written in native JS or using optional tools for binding and templating.",
   "homepage": "http://ulsmith.net/razor-naff/razor-naff",
   "author": "Paul Smith (smiffy6969)",
