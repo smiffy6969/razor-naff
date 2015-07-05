@@ -183,7 +183,11 @@ var naff = (function ()
 				if (!matches[i].hasAttribute('select')) continue;
 				var name = matches[i].getAttribute('select');
 				found = host.querySelector(name);
-                if (found) content[name] = found.cloneNode(true);
+                if (found)
+                {
+                    content[name] = found;
+                    found.parentNode.removeChild(found);
+                }
 			}
 
 			// apply template
