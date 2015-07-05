@@ -171,8 +171,8 @@ var naff = (function ()
 		var bind = host.hasAttribute('data-bind') || !!dataBind;
 		var matches = template.content.querySelectorAll('content[select]');
 		var match = template.content.querySelector('content');
-        var content, root, ele;
-
+        var content, root, ele, found;
+if (host.tagName == 'NAFF-MODAL') console.log(1, matches);
 		if (matches.length > 0)
 		{
 			content = {};
@@ -182,7 +182,8 @@ var naff = (function ()
 			{
 				if (!matches[i].hasAttribute('select')) continue;
 				var name = matches[i].getAttribute('select');
-				content[name] = host.querySelector(name);
+				found = host.querySelector(name);
+                if (found) content[name] = found.cloneNode(true);
 			}
 
 			// apply template
