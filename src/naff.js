@@ -172,7 +172,7 @@ var naff = (function ()
 		var matches = template.content.querySelectorAll('content[select]');
 		var match = template.content.querySelector('content');
         var content, root, ele, found;
-if (host.tagName == 'NAFF-MODAL') console.log(1, matches);
+
 		if (matches.length > 0)
 		{
 			content = {};
