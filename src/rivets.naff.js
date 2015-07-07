@@ -372,15 +372,15 @@
               _results1 = [];
               for (_k = 0, _len1 = _ref1.length; _k < _len1; _k++) {
                 n = _ref1[_k];
-                // [naff] skip any embedded scopes to stop collisions
-                if (!n.scope) _results1.push(n);
+                _results1.push(n);
               }
               return _results1;
             })();
             _results = [];
             for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
               childNode = _ref1[_j];
-              _results.push(parse(childNode));
+              if (childNode.scope) _results.push(_this.traverse(childNode));
+              else _results.push(parse(childNode));
             }
             return _results;
           }

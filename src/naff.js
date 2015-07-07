@@ -2,7 +2,7 @@
 // version: (please see package.js)
 // author: Paul Smith
 // license: MIT
-var naff = (function ()
+(function ()
 {
     'use strict';
 
@@ -339,7 +339,7 @@ var naff = (function ()
 		}
 	};
 
-	return {
+	var naff = {
 		getScope: getScope,
 		getParentScope: getParentScope,
 		registerElement: registerElement,
@@ -348,4 +348,9 @@ var naff = (function ()
 		cloneObject: cloneObject,
 		fire: fire
 	};
-})();
+
+    // Export module for Node and the browser.
+    if (typeof module !== 'undefined' && module.exports) module.exports = naff;
+    else if (typeof define === 'function' && define.amd) define([], function() { return this.naff = naff; });
+    else this.naff = naff;
+}).call(this);
