@@ -13,9 +13,31 @@ naff.registerApplication({
 	},
 
 	ready: function()
-	{		
+	{
 		// Initial setup
 		console.log('app is ready');
+
+		// Single ajax request example returning a promise
+		naff.request.get('../../razor-naff/demo/ajax.php').then(function(result)
+		{
+			console.log('then', result);
+		}).catch(function(result)
+		{
+			console.log('catch', result);
+		});
+
+		// Multiple ajax requests resolved to single promise all complete
+		Promise.all([
+			naff.request.get('../../razor-naff/demo/ajax.php'),
+			naff.request.get('../../razor-naff/demo/ajax.php'),
+			naff.request.get('../../razor-naff/demo/ajax.php')
+		]).then(function(results)
+		{
+			console.log('then', results);
+		}).catch(function(results)
+		{
+			console.log('catch', results);
+		});
 	},
 
 	clicked: function()

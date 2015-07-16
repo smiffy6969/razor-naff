@@ -33,11 +33,12 @@ bower install razor-naff --save
 ## Setup
 
 
-In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating which are bundled in), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...), the easiest way is using bower installing webcomponentsjs can be found on github. You can of course use your own if you wish, this is what we use as standard, we have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill for object observing and maybe xtags for web components, by all means give it a try.
+In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating which are bundled in), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...) and promises (promise-polyfill), the easiest way is using bower installing webcomponentsjs and promise-polyfill which can be found on github. You can of course use your own if you wish, this is what we use as standard, we have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill by all means give it a try.
 
 
 ```html
 <script type="text/javascript" src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+<script type="text/javascript" src="bower_components/promise-polyfill/Promise.min.js"></script>
 <script type="text/javascript" src="bower_components/razor-naff/build/naff.bundled.min.js"></script>
 ```
 
@@ -638,6 +639,104 @@ naff.registerApplication({
 * blueprint - The blueprint object.
 
 
+### cloneObject(obj)
+
+
+Clones an object and any child objects instead of passing reference
+
+
+```javascript
+naff.cloneObject({a: {b: 'b'}});
+```
+
+
+* obj - The object to clone.
+
+
+
+### fire(element, name[, detail])
+
+
+Will fire a new event against an element with optional detail
+
+
+```javascript
+naff.fire(document.querySelector('#something'), 'newevent', {extra: 'data'});
+```
+
+
+* element - The element to fire the event off.
+* name - The name of the custom element.
+* detail [optional] - extra details to go with the event.
+
+
+### request
+
+
+Micro tool to send ajax/rest requests to http/s addresses, returns a promise (requires polyfill for IE). Use request.ajax for custom requests, or get, post, put, delete for rest requests. All requests return JSON data.
+
+
+```javascript
+// Single ajax request example returning a promise
+naff.request.get('../../razor-naff/demo/ajax.php').then(function(result)
+{
+	console.log('then', result);
+}).catch(function(result)
+{
+	console.log('catch', result);
+});
+
+// Multiple ajax requests resolved to single promise all complete
+Promise.all([
+	naff.request.get('../../razor-naff/demo/ajax.php'),
+	naff.request.get('../../razor-naff/demo/ajax.php'),
+	naff.request.get('../../razor-naff/demo/ajax.php')
+]).then(function(results)
+{
+	console.log('then', results);
+}).catch(function(results)
+{
+	console.log('catch', results);
+});
+```
+
+
+__request.ajax(type, url, data)__
+
+
+* type - The type of request (get, post, put, delete).
+* url - The URL to hit.
+* data - Any data to send.
+
+
+__request.get(url[, id])__
+
+
+* url - The URL to hit.
+* id [optional] - ID of the resource, leave blank for all.
+
+
+__request.post(url, data)__
+
+
+* url - The URL to hit.
+* data - Any data to send.
+
+
+__request.put(url, data)__
+
+
+* url - The URL to hit.
+* data - Any data to send.
+
+
+__request.delete(url, id)__
+
+
+* url - The URL to hit.
+* id - The id of the resource to delete.
+
+
 ## Creating a Single Page Application
 
 
@@ -660,7 +759,7 @@ Once of the benefits of using the NAFF application method is that you do not hav
 
 		<!-- Polyfill native API's that are missing -->
 		<script type="text/javascript" src="../../webcomponentsjs/webcomponents.min.js"></script>
-		<script type="text/javascript" src="../../object.observe/dist/object-observe.min.js"></script>
+		<script type="text/javascript" src="../../promise-polyfill/Promise.min.js"></script>
 
 		<!-- Load the naff helper library used by the web components -->
 		<script type="text/javascript" src="../build/naff.bundled.min.js"></script>

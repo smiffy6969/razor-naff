@@ -8,6 +8,7 @@
 
 		<!-- Polyfill native API's if missing -->
 		<script type="text/javascript" src="../../webcomponentsjs/webcomponents.min.js"></script>
+		<script type="text/javascript" src="../../promise-polyfill/Promise.min.js"></script>
 
 		<!-- Load the naff helper library used by the web components -->
 		<script type="text/javascript" src="../build/naff.bundled.min.js"></script>
@@ -28,6 +29,8 @@
 			<h1>Test razorNAFF Application</h1>
 			<p>Test application: {{properties.test}}: {{properties.clickedTimes}}</p>
 			<button naff-on-click="clicked()">Increment</button>
+			<hr>
+			<p>NOTE: for xhr/ajax/rest test result please press F12 for dev console output of ready function requests...</p>
 		</naff-app>
 	</body>
 </html>

@@ -124,7 +124,7 @@
 
 			if (!!template)
 			{
-				applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
+				_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
 			}
 
@@ -159,10 +159,98 @@
 	};
 
 	/**
-	 * [public] - Apply a template to a new custom element in light dom (default) or shadow dom (with 'shadow-dom' attribute on custom element)
+	 * [public] - Clone an objects properties and methods
+	 * @param object The object to clone
+	 * @return object The cloned object (not a reference to an object)
+	 */
+	var cloneObject = function(obj)
+	{
+	    if (obj === null || obj.toString() !== '[object Object]') return obj;
+	    var temp = obj.constructor();
+	    for (var key in obj) temp[key] = cloneObject(obj[key]);
+
+	    return temp;
+	};
+
+	/**
+	 * [public] - Fires an event off, from the provided element, or from scope if element not set
+	 * @param HTML obejct element The element to fire from
+	 * @param string name The name of the event
+	 * @param mixed detail [optional] Any optional details you wish to send
+	 */
+	var fire = function(element, name, detail)
+	{
+		if (!element) element = this;
+		if (element.host) element = element.host;
+		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
+		element.dispatchEvent(event);
+	};
+
+    /**
+     * [public] - Micro tool to make ajax/rest requests and return promise, can be called directly using ajax (for basic calls), or via get, post, put, delete
+     * @return ajax function [type, url, data] - Basic ajax request
+     *      @param string type The type of request to make, get, post, put, delete...
+     *      @param string url The correctly formed URL to hit...
+     *      @param string data Any data to send along the way...
+     * @return get function [url, id] - GET rest request
+     *      @param string url The url to get from
+     *      @param string id [optional] The id of the resource to get
+     * @return post function [url, data] - POST rest request
+     *      @param string url The url to get from
+     *      @param string data [optional] The data to send in to the post request
+     * @return put function [url, data] - PUT rest request
+     *      @param string url The url to get from
+     *      @param string data The data to send in to the put request
+     * @return delete function [url, id] - DELETE rest request
+     *      @param string url The url to get from
+     *      @param string id The id of the resource to delete
+     */
+    var request = {
+        ajax: function (type, url, data) {
+            var scope = this;
+            type = type.toUpperCase();
+            var promise = new Promise(function(resolve, reject)
+            {
+                var XHR = XMLHttpRequest || ActiveXObject;
+                var request = new XHR('MSXML2.XMLHTTP.3.0');
+                request.open(type, url, true);
+                request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                request.onreadystatechange = function ()
+                {
+                    if (request.readyState === 4) {
+                        if (request.status === 200) resolve({data: typeof JSON !== 'undefined' ? JSON.parse(request.responseText) : request.responseText, response: request});
+                        else reject({data: typeof JSON !== 'undefined' ? JSON.parse(request.responseText) : request.responseText, response: request});
+                    }
+                };
+                request.send(data);
+            });
+            return promise;
+        },
+
+        get: function (url, id) {
+            return this.ajax('GET', url + (typeof id !== 'undefined' ? '/' + id : ''));
+        },
+
+        put: function (url, data) {
+            return this.ajax('PUT', url, data);
+        },
+
+        post: function (url, data) {
+            return this.ajax('POST', url, data);
+        },
+
+        delete: function (url, id) {
+            return this.ajax('DELETE', url + '/' + id);
+        }
+    };
+
+	/* PRIVATE */
+
+	/**
+	 * [private] - Apply a template to a new custom element in light dom (default) or shadow dom (with 'shadow-dom' attribute on custom element)
 	 * @param mixed host The custom element to apply the template to, usually 'this' but can be selector string
 	 */
-	var applyTemplate = function(host, template, shadowDom, dataBind)
+	var _applyTemplate = function(host, template, shadowDom, dataBind)
 	{
 		host = _getElement(host);
 		if (!host) throw 'Host custom element not specified, please add custom element reference or lookup';
@@ -245,36 +333,6 @@
 	};
 
 	/**
-	 * [public] - Clone an objects properties and methods
-	 * @param object The object to clone
-	 * @return object The cloned object (not a reference to an object)
-	 */
-	var cloneObject = function(obj)
-	{
-	    if (obj === null || obj.toString() !== '[object Object]') return obj;
-	    var temp = obj.constructor();
-	    for (var key in obj) temp[key] = cloneObject(obj[key]);
-
-	    return temp;
-	};
-
-	/**
-	 * [public] - Fires an event off, from the provided element, or from scope if element not set
-	 * @param HTML obejct element The element to fire from
-	 * @param string name The name of the event
-	 * @param mixed detail [optional] Any optional details you wish to send
-	 */
-	var fire = function(element, name, detail)
-	{
-		if (!element) element = this;
-		if (element.host) element = element.host;
-		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
-		element.dispatchEvent(event);
-	};
-
-	/* PRIVATE */
-
-	/**
 	 * [private] - parse all data to return correct type
 	 * @param string data The initial data as a string
 	 * @param object model The scope to refer to when converting data
@@ -344,9 +402,9 @@
 		getParentScope: getParentScope,
 		registerElement: registerElement,
 		registerApplication: registerApplication,
-		applyTemplate: applyTemplate,
 		cloneObject: cloneObject,
-		fire: fire
+		fire: fire,
+        request: request
 	};
 
     // Export module for Node and the browser.

@@ -1,10 +1,13 @@
 {
   "name": "razor-naff",
-  "version": "1.0.10",
-  "description": "razorNAFF helper library for creating web components written in native JS or using optional tools for binding and templating.",
-  "homepage": "http://ulsmith.net/razor-naff/razor-naff",
+  "description": "razorNAFF helper library for creating HTML web components.",
   "author": "Paul Smith (smiffy6969)",
+  "version": "1.0.11",
+  "homepage": "http://ulsmith.net/razor-naff/razor-naff",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "webcomponentsjs": "webcomponents/webcomponentsjs",
+    "promise-polyfill": "taylorhakes/promise-polyfill"
+  },
   "devDependencies": {}
 }
