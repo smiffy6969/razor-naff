@@ -1,3 +1,1 @@
-naff-app p {
-  font-weight: bold;
-}
+naff-app p{font-weight:bold}naff-app .menu li{color:#ccf;cursor:pointer}naff-app .menu li.selected{color:#66f}naff-app .menu li:hover{color:#33f}

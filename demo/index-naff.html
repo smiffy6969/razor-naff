@@ -27,9 +27,35 @@
 		<!-- naff-app is the name of the app, resolve is to defer rendering until binding has complete, if you so wish... -->
 		<naff-app resolve>
 			<h1>Test razorNAFF Application</h1>
-			<p>Test application: {{properties.test}}: {{properties.clickedTimes}}</p>
+
+			<h2>Binding Test</h2>
+			<p>Test application: {{private.test}}: {{private.clickedTimes}}</p>
 			<button naff-on-click="clicked()">Increment</button>
+
 			<hr>
+
+			<h2>Simple Routing Test</h2>
+
+			<ul class="menu">
+				<li naff-on-click="changeRoute('one')" naff-class-selected="private.route.one">Page One (default)</li>
+				<li naff-on-click="changeRoute('two')" naff-class-selected="private.route.two">Page Two</li>
+				<li naff-on-click="changeRoute('three')" naff-class-selected="private.route.three">Page Three</li>
+			</ul>
+
+			<div class="one" naff-if="private.route.one">
+				<p>This is page 1</p>
+			</div>
+
+			<div class="two" naff-if="private.route.two">
+				<p>This is page 2</p>
+			</div>
+
+			<div class="three" naff-if="private.route.three">
+				<p>This is page 3</p>
+			</div>
+
+			<hr>
+
 			<p>NOTE: for xhr/ajax/rest test result please press F12 for dev console output of ready function requests...</p>
 		</naff-app>
 	</body>

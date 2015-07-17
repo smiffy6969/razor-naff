@@ -88,6 +88,22 @@
 		{
 			if (this.hasAttribute('resolve')) this.setAttribute('unresolved', '');
 			this.scope = cloneObject(blueprint);
+
+            if (typeof this.scope.location === 'function')
+            {
+                var hashCache = getLocation();
+                this.scope.location.call(this.scope, hashCache, null);
+
+                var self = this;
+                window.addEventListener("hashchange", function(event)
+                {
+                    // call hashCache seperately to stop reference and force new object, otherwise have to clone
+                    self.scope.location.call(self.scope, getLocation(), hashCache);
+                    hashCache = getLocation();
+                }, false);
+            }
+
+            if (typeof this.scope.created != 'undefined') this.scope.created();
 		};
 
 		proto.attachedCallback = function()
@@ -242,6 +258,61 @@
         delete: function (url, id) {
             return this.ajax('DELETE', url + '/' + id);
         }
+    };
+
+    /**
+	 * [public] - parse URL hash data and return hash object, gives details like path, hash route, hash variables etc
+	 * @return object The URL hash object containing parsed hash data like route, path and variables
+	 */
+    var getLocation = function()
+    {
+        var url = decodeURI(window.location.href);
+
+        // basic route
+        if (url.indexOf('#') < 0) return {route: '', params: {}};
+        var hashString = url.substring(url.indexOf('#') + 1, url.length);
+        if (hashString.indexOf('?') < 0) return {route: hashString, params: {}};
+
+        // parse params
+        var route = hashString.substring(0, hashString.indexOf('?'));
+        var params = {};
+        var parts = hashString.substring(hashString.indexOf('?') + 1, hashString.length).split('&');
+        for (var i = 0; i < parts.length; i++)
+        {
+            var param = parts[i].split('=');
+            if (param[0].length < 1) continue;
+            try { param[1] = JSON.parse(param[1]); }
+            catch(e) {}
+            params[param[0]] = param[1] || '';
+        }
+
+        return {route: route, params: params};
+    };
+
+    /**
+	 * [public] - set a part of the URL hash (route or params or both), gives details like path, hash route, hash variables etc
+	 * @param object obj The hash object to update the URL with e.g. {route: '/new/route', params:{one: 'first', two: [1,2,3]}}
+	 */
+    var setLocation = function(obj)
+    {
+        if (typeof obj == 'undefined') return;
+
+        // grab current url and hash
+        var url = decodeURI(window.location.href);
+        var newUrl = url.split('#')[0] + '#';
+
+        // update route
+        newUrl += typeof obj.route != 'undefined' ? obj.route : url.indexOf('#') < 0 ? '' : url.substring(url.indexOf('#') + 1, url.length).split('?')[0];
+
+        // update params
+        if (typeof obj.params != 'undefined')
+        {
+            newUrl += '?';
+            for (var key in obj.params) newUrl += key + '=' + JSON.stringify(obj.params[key]) + '&';
+            newUrl = newUrl.substring(0, newUrl.length - 1);
+        }
+
+        window.location.href = encodeURI(newUrl);
     };
 
 	/* PRIVATE */
@@ -404,7 +475,9 @@
 		registerApplication: registerApplication,
 		cloneObject: cloneObject,
 		fire: fire,
-        request: request
+        request: request,
+        getLocation: getLocation,
+        setLocation: setLocation
 	};
 
     // Export module for Node and the browser.

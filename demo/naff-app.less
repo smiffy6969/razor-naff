@@ -2,7 +2,19 @@
  * App specific styling
  * Compile to css with less compiler
  */
-naff-app 
+naff-app
 {
 	p {font-weight: bold;}
+
+	.menu
+	{
+		li
+		{
+			color: lighten(blue, 40%);
+			cursor: pointer;
+
+			&.selected { color: lighten(blue, 20%); }
+			&:hover { color: lighten(blue, 10%); }
+		}
+	}
 }

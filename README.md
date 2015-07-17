@@ -737,6 +737,34 @@ __request.delete(url, id)__
 * id - The id of the resource to delete.
 
 
+### getLocation()
+
+
+Fetches the current URL hash location route and parameters, for use with routing multipage js apps
+
+
+```javascript
+var location = naff.getLocation(); // returns {route: string, params: object}
+```
+
+
+Returns an object containing current hash route and any hash parameters
+
+
+### setLocation(location)
+
+
+Sets the URL hash route and parameters, promotes onhashchange which is pushed out to application location function.
+
+
+```javascript
+naff.getLocation({route: 'something', params:{one: 'one'}});
+```
+
+
+* location - The location object to set the URL hash value to, include route or params as required, nested params allowed.
+
+
 ## Creating a Single Page Application
 
 
@@ -810,10 +838,22 @@ naff.registerApplication({
 		clickedTimes: 0
 	},
 
-	ready: function()
+	created: function()
 	{
 		// Initial setup
+		console.log('app is created');
+	},
+
+	ready: function()
+	{
+		// ready to rock
 		console.log('app is ready');
+	},
+
+	location: function(newLoc, oldLoc)
+	{
+		// run once on load, and every time location is updated
+		console.log('hash location changed');
 	},
 
 	clicked: function()
