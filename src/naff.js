@@ -144,6 +144,20 @@
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
 			}
 
+            if (typeof this.scope.location === 'function')
+            {
+                var hashCache = getLocation();
+                this.scope.location.call(this.scope, hashCache, null);
+
+                var self = this;
+                window.addEventListener("hashchange", function(event)
+                {
+                    // call hashCache seperately to stop reference and force new object, otherwise have to clone
+                    self.scope.location.call(self.scope, getLocation(), hashCache);
+                    hashCache = getLocation();
+                }, false);
+            }
+
 			var scope = this.scope.host = this;
 			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
 			if (!!blueprint.created) this.scope.created();

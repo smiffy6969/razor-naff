@@ -309,6 +309,7 @@ When creating custom properties, please ensure you keep away from using the foll
 * attached()
 * detached()
 * attributeChanged()
+* location()
 * fire()
 
 
@@ -440,6 +441,27 @@ This function is run when custom element attributes change, this is the actual i
 	attributeChanged: function(name, oldVal, newVal)
 	{
 		console.log(name, oldValue, newValue);
+	},
+// ...
+```
+
+
+## location(newLoc, oldLoc)
+
+
+This function is run once on load, then on every change to the URL hash, it can be added to an element blueprint or an application blueprint. On first load there will be no oldLoc value but after the first load oldLoc will be populated with the last location details. newLoc and oldLoc contain not only the route of the page, but any parameters set against the URL hash.
+
+
+* newLoc - An object containing route and params. route is the string route which can contain slashes, params can be either string, array or object data.
+* oldLoc - Same as the above, but contains data relating to the last location before the change.
+
+
+```javascript
+// ...
+	location: function(newLoc, oldLoc)
+	{
+		// run once on load, and every time location is updated
+		console.log('hash location changed');
 	},
 // ...
 ```
