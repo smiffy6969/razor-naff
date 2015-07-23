@@ -19,16 +19,19 @@
 			// Augment the event handler of the on-* binder
 			handler: function(target, event, binding)
 			{
-				// need to send in all arguments, resolve them to model
-				target = getScope(target);
-				var parts = binding.keypath.replace(')', '').split('(');
-				var args = parts[1].split(',');
+    			var parts = binding.keypath.replace(')', '').split('(');
+    			var args = parts[1].split(',');
 
-				for (var i = 0; i < args.length; i++) args[i] = _parseData(args[i], target);
-				if (typeof target[parts[0]] == 'undefined') throw 'Error: cannot find function \'' + parts[0] + '\' in element scope';
+    			for (var i = 0; i < args.length; i++) args[i] = _parseData(args[i], target);
+
+                // resolve correct scope that is bound to function
+                target = getScope(target);
+                while (target && target.name !== binding.model.name) target = getScope(target.host);
+
+                if (typeof target[parts[0]] == 'undefined') throw 'Error: cannot find function \'' + parts[0] + '\' in element scope \'' + binding.model.name + '\'';
 
                 args.unshift(event);
-				target[parts[0]].apply(target, args);
+    			target[parts[0]].apply(target, args);
 			}
 		});
 	}

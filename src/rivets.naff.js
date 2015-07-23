@@ -379,8 +379,7 @@
             _results = [];
             for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
               childNode = _ref1[_j];
-              if (childNode.scope) _results.push(_this.traverse(childNode));
-              else _results.push(parse(childNode));
+              _results.push(parse(childNode));
             }
             return _results;
           }
@@ -398,6 +397,9 @@
     };
 
     View.prototype.traverse = function(node) {
+      // ignore items that bind themselves
+      if (node.scope && node.scope.dataBind) return false;
+
       var attribute, attributes, binder, bindingRegExp, block, identifier, regexp, type, value, _i, _j, _len, _len1, _ref1, _ref2, _ref3;
       bindingRegExp = this.bindingRegExp();
       block = node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE';
