@@ -301,10 +301,10 @@ When creating custom properties, please ensure you keep away from using the foll
 
 * host
 * template
-* scope
 * name
 * extends
 * dataBind
+* attributes
 * created()
 * attached()
 * detached()
@@ -370,6 +370,32 @@ This is the custom element contents as you see it in the template, use this to g
 		var children = this.template.childNodes;
 		var div = this.template.querySelector('div');
 	},
+// ...
+```
+
+
+### this.attributes __HTML object__ (any naff attributes set on the host)
+
+
+This is the place where you can access the hosts naff attribute values, you can use this for accessing data that is set on the custom object naff attributes, such as object data. This data is one way binding only, so changes to the original data will be updated automatically inside the custom element. This can be helpfull if you want to send in an object on a naff attribute. setting `naff-options="private.options"` on your custom element would expose the parents private.options object to the custom element this.attributes.options object. Any changes made in parent, updating the object, would update the web component attributes object as it is a reference to the parent object. This can be used to create web components that populate lists, feeding in the list data from the parent. If you wish to alter the parent data from the component, either hit it directly using getParentScope() (not-recommended), or the better option is to fire an event, then listen to this from the parent and update from the parent (if createing components for other to use too).
+
+
+```javascript
+// ...
+	attributes: {},
+// ...
+```
+
+
+```html
+// ...
+	{{attributes.options}}
+
+	// or
+
+	<ul>
+		<li naff-each-option="attributes.options">{{option}}</li>
+	</ul>
 // ...
 ```
 
@@ -542,6 +568,27 @@ Many many thanks to Michael Richards for his work on this exceptional tool [http
 
 PLEASE NOTE: Do not use the base version of rivets and sightglass with naff, please use the bundled version to keep scope isolation.
 
+### Additional Tools for rivets
+
+
+In addition to the base offering of Rivets, naff also adds some tools, such as the ability for Rivets to work with naff components, as well as formatters. Below are a list of data formatters you can use with the naff bundled version of Rivets.
+
+__key__
+
+
+`object | key 'something'` or `object | key anotherVariable`
+
+
+This will format an object value by a key (in times when you do not know what the key may be so cannot use . notation). When a key is not found, the object is returned. This is helpfull when you want to return the object or the object[key] value if set, like in naff-select.
+
+__json__
+
+
+`object | json`
+
+
+This will format an object to a JSON string, handy for dumping data or setting json on attributes.
+
 
 ## Helper Functions in NAFF (naff.[function name])
 
@@ -587,10 +634,6 @@ Will grab the current working scope for the parent web component based on the or
 	},
 // ...
 ```
-
-
-* origin - The starting element to look backwards from.
-* name (optional) - The name of the parent scope to find.
 
 
 ### registerElement(blueprint)

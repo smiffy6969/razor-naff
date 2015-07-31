@@ -26,7 +26,7 @@
 
                 // resolve correct scope that is bound to function
                 target = getScope(target);
-                while (target && target.name !== binding.model.name) target = getScope(target.host);
+                while (target && target.name !== binding.model.name) target = getScope(target.host.parentNode);
 
                 if (typeof target[parts[0]] == 'undefined') throw 'Error: cannot find function \'' + parts[0] + '\' in element scope \'' + binding.model.name + '\'';
 
@@ -53,7 +53,7 @@
 	 */
 	var getScope = function(origin)
 	{
-		origin = _getOrigin(origin);
+		origin = _getElement(origin);
 		if (!origin) throw 'Origin not found, please add starting point for scope lookup';
 
 		var parent = origin;
@@ -69,12 +69,14 @@
 	 */
 	var getParentScope = function(origin, name)
 	{
-		origin = _getOrigin(origin);
+		origin = _getElement(origin);
 		if (!origin) throw 'Origin not specified, please add starting point for scope lookup';
 
-		var parent = getScope(origin).parentNode;
-		while (!!parent.tagName && !(!!name && parent.tagName == name.toUpperCase() && parent.scope) && !(!name && parent.scope)) parent = parent.parentNode;
-		return !!parent.scope ? parent.scope : (parent.toString() === '[object ShadowRoot]' ? parent.host.scope : null);
+		var parent = getScope(origin); // get current scope
+        parent = getScope(parent.host.parentNode); // get parent scope
+
+        if (typeof name !== 'undefined') while (parent.parentNode && parent.host && parent.host.tagName !== name.toUpperCase()) parent = getScope(parent.parentNode);
+        return parent;
 	};
 
 	/**
@@ -105,6 +107,8 @@
                     hashCache = getLocation();
                 }, false);
             }
+
+            this.scope.host = this;
 
             if (typeof this.scope.created != 'undefined') this.scope.created();
 		};
@@ -160,6 +164,9 @@
                     hashCache = getLocation();
                 }, false);
             }
+
+            // sync any naff attributes [*] to attributes on scope.
+            if (typeof this.naffAttributes !== 'undefined') this.scope.attributes = this.naffAttributes;
 
 			var scope = this.scope.host = this;
 			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
@@ -452,21 +459,6 @@
 			}
 
 			return result;
-		}
-	};
-
-	/**
-	 * [private] - Resolve to dom element and return
-	 * @param mixed element The element/string to resolve to a dom element
-	 * @return mixed Dom element or null
-	 */
-	var _getOrigin = function(element)
-	{
-		switch (typeof element)
-		{
-			case 'undefined': return null;
-			case 'string': return document.querySelector(element);
-			case 'object': return !!element.scope ? element.parentNode : element;
 		}
 	};
 

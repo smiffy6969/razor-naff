@@ -992,18 +992,18 @@
     priority: 3000,
     bind: function(el) {
       if (!(el.tagName === 'INPUT' && el.type === 'radio')) {
-        this.event = el.tagName === 'SELECT' ? 'change' : 'input';
+        this.event = el.tagName.indexOf('SELECT') >= 0 ? 'change' : 'input';
         return Rivets.Util.bindEvent(el, this.event, this.publish);
       }
     },
     unbind: function(el) {
-      if (!(el.tagName === 'INPUT' && el.type === 'radio')) {
+      if (!(el.tagName.indexOf('INPUT') && el.type === 'radio')) {
         return Rivets.Util.unbindEvent(el, this.event, this.publish);
       }
     },
     routine: function(el, value) {
       var o, _i, _len, _ref1, _ref2, _ref3, _results;
-      if (el.tagName === 'INPUT' && el.type === 'radio') {
+      if (el.tagName.indexOf('INPUT') && el.type === 'radio') {
         return el.setAttribute('value', value);
       } else if (window.jQuery != null) {
         el = jQuery(el);
@@ -1239,7 +1239,14 @@
         {
             // update from binding
             if (value != null) {
-              return el.setAttribute(this.type, value);
+                // copy attributes to object regardless
+                if (!el.naffAttributes) el.naffAttributes = {};
+                el.naffAttributes[this.type] = value;
+
+                // if not an object, also copy to proper attribute
+                if (typeof value !== 'object') return el.setAttribute(this.type, value.toString());
+                else if (el.tagName.indexOf('-')) return el.setAttribute(this.type, 'object bound to scope.attributes');
+                else return el.setAttribute(this.type, 'object bound to naffAttributes');
             } else {
               return el.removeAttribute(this.type);
             }
@@ -1390,6 +1397,16 @@
     set: function(obj, keypath, value) {
       return obj[keypath] = value;
     }
+  };
+
+  Rivets['public'].formatters.key = function(value, key)
+  {
+      return value[key] || value;
+  };
+
+  Rivets['public'].formatters.json = function(value)
+  {
+      return JSON.stringify(value);
   };
 
   Rivets.factory = function(sightglass) {
