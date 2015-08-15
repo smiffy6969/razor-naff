@@ -8,7 +8,7 @@
 
     /* CONFIG */
 
-    if (typeof rivets != 'undefined')
+    if (typeof rivets !== 'undefined')
     {
 		rivets.configure({
 			prefix: 'naff',
@@ -35,6 +35,12 @@
 			}
 		});
 	}
+
+    if (typeof sightglass !== 'undefined')
+    {
+        sightglass.adapters = rivets.adapters;
+        sightglass.root = '.';
+    }
 
 	if (!document.head.querySelector('style#naff-resolver'))
 	{
@@ -228,10 +234,12 @@
 
     /**
      * [public] - Micro tool to make ajax/rest requests and return promise, can be called directly using ajax (for basic calls), or via get, post, put, delete
-     * @return ajax function [type, url, data] - Basic ajax request
+     * @param string token The token to set for authorization requests
+     * @return ajax function [type, url, data[, headers]] - Basic ajax request
      *      @param string type The type of request to make, get, post, put, delete...
      *      @param string url The correctly formed URL to hit...
      *      @param string data Any data to send along the way...
+     *      @param object headers [optional] headers as key:value
      * @return get function [url, id] - GET rest request
      *      @param string url The url to get from
      *      @param string id [optional] The id of the resource to get
@@ -246,41 +254,68 @@
      *      @param string id The id of the resource to delete
      */
     var request = {
-        ajax: function (type, url, data) {
+        token: null, // Authorization token cache for syncrhonizing handshaking
+
+        ajax: function (type, url, data, headers) {
             var scope = this;
             type = type.toUpperCase();
             var promise = new Promise(function(resolve, reject)
             {
                 var XHR = XMLHttpRequest || ActiveXObject;
-                var request = new XHR('MSXML2.XMLHTTP.3.0');
-                request.open(type, url, true);
-                request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                request.onreadystatechange = function ()
+                var xhrRequest = new XHR('MSXML2.XMLHTTP.3.0');
+                xhrRequest.open(type, url, true);
+                if (typeof headers !== 'undefined')
                 {
-                    if (request.readyState === 4) {
-                        if (request.status === 200) resolve({data: typeof JSON !== 'undefined' ? JSON.parse(request.responseText) : request.responseText, response: request});
-                        else reject({data: typeof JSON !== 'undefined' ? JSON.parse(request.responseText) : request.responseText, response: request});
+                    if (request.token !== null) headers.Authorization = request.token;
+                    for (var key in headers) xhrRequest.setRequestHeader(key, headers[key]);
+                }
+                xhrRequest.onreadystatechange = function ()
+                {
+                    if (xhrRequest.readyState === 4)
+                    {
+                        // sort out response, sniff out json and convert
+                        var output = xhrRequest.responseText;
+                        if (typeof headers['Content-Type'] !== 'undefined' && headers['Content-Type'].indexOf('json') >= 0)
+                        {
+                            try { output = JSON.parse(xhrRequest.responseText); }
+                            catch(e) {}
+                        }
+
+                        // set token
+                        request.token = this.getResponseHeader('Authorization');
+
+                        // set response type
+                        if (xhrRequest.status === 200) resolve({data: output, response: xhrRequest});
+                        else reject({data: output, response: xhrRequest});
                     }
                 };
-                request.send(data);
+                xhrRequest.send(data);
             });
             return promise;
         },
 
         get: function (url, id) {
-            return this.ajax('GET', url + (typeof id !== 'undefined' ? '/' + id : ''));
+            var headers = {'Content-Type': 'application/json;charset=UTF-8', 'Cache-Control': 'no-cache'};
+            return this.ajax('GET', url + (typeof id !== 'undefined' && id !== null ? '/' + id : ''), null, headers);
         },
 
         put: function (url, data) {
-            return this.ajax('PUT', url, data);
+            var headers = {'Content-Type': 'application/json;charset=UTF-8', 'Cache-Control': 'no-cache'};
+            try { data = JSON.stringify(data); }
+            catch(e) {}
+            return this.ajax('PUT', url, data, headers);
         },
 
         post: function (url, data) {
-            return this.ajax('POST', url, data);
+            var headers = {'Content-Type': 'application/json;charset=UTF-8', 'Cache-Control': 'no-cache'};
+            try { data = JSON.stringify(data); }
+            catch(e) {}
+            return this.ajax('POST', url, data, headers);
         },
 
         delete: function (url, id) {
-            return this.ajax('DELETE', url + '/' + id);
+            var headers = {'Content-Type': 'application/json;charset=UTF-8', 'Cache-Control': 'no-cache'};
+            return this.ajax('DELETE', url + (typeof id !== 'undefined' && id !== null ? '/' + id : ''), null, headers);
         }
     };
 

@@ -464,7 +464,12 @@
       _results = [];
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
         binding = _ref1[_i];
-        _results.push(binding.bind());
+        // stop any cross binding of multiple scopes, only bind to first scope found
+        if (!binding.el.rivets || binding.el.rivets == this.models.name)
+        {
+            _results.push(binding.bind());
+            binding.el.rivets = this.models.name;
+        }
       }
       return _results;
     };

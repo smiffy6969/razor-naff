@@ -766,12 +766,19 @@ Promise.all([
 ```
 
 
-__request.ajax(type, url, data)__
+__request.token__
+
+
+The authorization token to set if you wish to perform authorization requests. Tokens are syncrhonized automatically when using rars. If not using rars, ensure all logins return an authorization header, this will then be resent back out on the next request for validation. If you require persistance, cache the token to a cookie and reinstate on page load.
+
+
+__request.ajax(type, url, data[, headers])__
 
 
 * type - The type of request (get, post, put, delete).
 * url - The URL to hit.
 * data - Any data to send.
+* headers - [optional] Set your headers in the form of an object {"header-name": "value"}.
 
 
 __request.get(url[, id])__
@@ -779,6 +786,7 @@ __request.get(url[, id])__
 
 * url - The URL to hit.
 * id [optional] - ID of the resource, leave blank for all.
+* token [optional] - Authorization token (via Authorization header) to send with request (can extract at other end to validate user via handshaking instead of using a cookie).
 
 
 __request.post(url, data)__
@@ -786,6 +794,7 @@ __request.post(url, data)__
 
 * url - The URL to hit.
 * data - Any data to send.
+* token [optional] - Authorization token (via Authorization header) to send with request (can extract at other end to validate user via handshaking instead of using a cookie).
 
 
 __request.put(url, data)__
@@ -793,6 +802,7 @@ __request.put(url, data)__
 
 * url - The URL to hit.
 * data - Any data to send.
+* token [optional] - Authorization token (via Authorization header) to send with request (can extract at other end to validate user via handshaking instead of using a cookie).
 
 
 __request.delete(url, id)__
@@ -800,6 +810,7 @@ __request.delete(url, id)__
 
 * url - The URL to hit.
 * id - The id of the resource to delete.
+* token [optional] - Authorization token (via Authorization header) to send with request (can extract at other end to validate user via handshaking instead of using a cookie).
 
 
 ### getLocation()
