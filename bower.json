@@ -2,10 +2,11 @@
   "name": "razor-naff",
   "description": "razorNAFF helper library for creating HTML web components.",
   "author": "Paul Smith (smiffy6969)",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "homepage": "http://ulsmith.net/razor-naff/razor-naff",
   "license": "MIT",
   "private": false,
+  "main": "build/naff.min.js",
   "keywords": [
     "razor",
     "naff",

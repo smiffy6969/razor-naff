@@ -1223,6 +1223,16 @@
     }
   };
 
+  Rivets["public"].binders['disabled'] = function(el, value) {
+    if (!value) el.removeAttribute('disabled');
+    else el.setAttribute('disabled', '');
+  };
+
+  Rivets["public"].binders['required'] = function(el, value) {
+    if (!value) el.removeAttribute('required');
+    else el.setAttribute('required', '');
+  };
+
   Rivets["public"].binders['*'] = {
     publishes: true,
     priority: 3000,

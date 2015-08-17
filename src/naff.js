@@ -426,10 +426,11 @@
 		}
 		else if (match)
 		{
-			// cache content from host
-			content = host.innerHTML;
+			// cache content from host, if this fails with things like naff if, need to swap this a childNodes.length > 0..... childNodes[0]
+            content = document.createDocumentFragment();
+            while(host.firstChild) content.appendChild(host.firstChild);
 
-			// apply template
+            // apply template
 			if (shadow)
 			{
 				root = host.createShadowRoot();
@@ -437,13 +438,12 @@
 			}
 			else host.innerHTML = template.innerHTML;
 
-			// apply content
+			// grab content area
 			ele = shadow ? root.querySelector('content') : host.querySelector('content');
-			ele.innerHTML = content;
 
-			// remove parent content div
+			// add children from host to parent and remove parent content element
 			var fragment = document.createDocumentFragment();
-			while(ele.firstChild) fragment.appendChild(ele.firstChild);
+			while(content.firstChild) fragment.appendChild(content.firstChild);
 			ele.parentNode.replaceChild(fragment, ele);
 		}
 		else
