@@ -1224,11 +1224,13 @@
   };
 
   Rivets["public"].binders['disabled'] = function(el, value) {
+    value = value == 'false' || value == '0' || value == '' || !value ? false : true;
     if (!value) el.removeAttribute('disabled');
     else el.setAttribute('disabled', '');
   };
 
   Rivets["public"].binders['required'] = function(el, value) {
+    value = value == 'false' || value == '0' || value == '' || !value ? false : true;
     if (!value) el.removeAttribute('required');
     else el.setAttribute('required', '');
   };
