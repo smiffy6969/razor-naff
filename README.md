@@ -573,6 +573,7 @@ PLEASE NOTE: Do not use the base version of rivets and sightglass with naff, ple
 
 In addition to the base offering of Rivets, naff also adds some tools, such as the ability for Rivets to work with naff components, as well as formatters. Below are a list of data formatters you can use with the naff bundled version of Rivets.
 
+
 __key__
 
 
@@ -581,6 +582,7 @@ __key__
 
 This will format an object value by a key (in times when you do not know what the key may be so cannot use . notation). When a key is not found, the object is returned. This is helpfull when you want to return the object or the object[key] value if set, like in naff-select.
 
+
 __json__
 
 
@@ -588,6 +590,33 @@ __json__
 
 
 This will format an object to a JSON string, handy for dumping data or setting json on attributes.
+
+
+__int__
+
+
+`value | int`
+
+
+This will parse the value and return the integer value, great for parsing strings back to ints.
+
+
+__bool__
+
+
+`value | bool`
+
+
+This will format an value to a bool, which is great for converting strings, numbers and null to a proper bool. Will convert 'false', '0', 0, null to false, any other value is true.
+
+
+__not__
+
+
+`value | not`
+
+
+As per bool above, but giving you the opposite value.
 
 
 ## Helper Functions in NAFF (naff.[function name])

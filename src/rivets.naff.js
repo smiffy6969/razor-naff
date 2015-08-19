@@ -1426,6 +1426,21 @@
       return JSON.stringify(value);
   };
 
+  Rivets['public'].formatters.int = function(value)
+  {
+      return parseInt(value);
+  };
+
+  Rivets['public'].formatters.bool = function(value)
+  {
+      return value == 'false' || value == '0' || value == '' || !value ? false : true;
+  };
+
+  Rivets['public'].formatters.not = function(value)
+  {
+      return value == 'false' || value == '0' || value == '' || !value ? true : false;
+  };
+
   Rivets.factory = function(sightglass) {
     Rivets.sightglass = sightglass;
     Rivets["public"]._ = Rivets;
