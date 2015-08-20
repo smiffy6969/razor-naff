@@ -842,6 +842,50 @@ __request.delete(url, id)__
 * token [optional] - Authorization token (via Authorization header) to send with request (can extract at other end to validate user via handshaking instead of using a cookie).
 
 
+### cookie
+
+
+Micro tool to get, set, remove and check cookies.
+
+
+```javascript
+naff.cookie.get('name');
+naff.cookie.set('name', value);
+naff.cookie.remove('name');
+naff.cookie.has('name');
+```
+
+
+__cookie.get(name)__
+
+
+* name - The name of the cookie to fetch.
+
+
+__cookie.set(name, value[, exp, path, domain, secure])__
+
+
+* name - The name of the cookie set
+* value - The value to set the cookie to
+* exp - [optional] The expiry for the cookie as a number, string or date value
+* domain - [optional] The domain for the cookie
+* secure [optional] Should this only be for https
+
+
+__cookie.remove(url, path, domain)__
+
+
+* name - The name of the cookie to remove
+* path - [optional] The path for the cookie
+* domain - [optional] The domain for the cookie
+
+
+__cookie.has(name)__
+
+
+* name - The name of the cookie to remove
+
+
 ### getLocation()
 
 
