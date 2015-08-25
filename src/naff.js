@@ -124,12 +124,16 @@
 			var app = this;
 			rivets.bind(app, app.scope);
 
-			// ensure end of stack
+			// delay unresolved resolution
 			setTimeout(function()
-			{
-				app.removeAttribute('unresolved');
-				if (typeof app.scope.ready != 'undefined') app.scope.ready();
-			}, 0);
+            {
+                app.removeAttribute('unresolved');
+            }, 150);
+
+            setTimeout(function()
+    		{
+    			if (typeof app.scope.ready != 'undefined') app.scope.ready();
+    		}, 600);
 		};
 
 		// register custom element
