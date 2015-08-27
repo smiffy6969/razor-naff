@@ -22,7 +22,7 @@ bower init
 ```
 
 
-Installing is simple via bower in the command line, from your project root folder... The dependancies required (rivets and sightglass) are both bundled in seeing as some tweaking is needed for naff.
+Installing is simple via bower in the command line, from your project root folder... The dependancies required (rivets, sightglass and dateFormat) are bundled in seeing as some tweaking is needed for naff.
 
 
 ```
@@ -33,7 +33,7 @@ bower install razor-naff --save
 ## Setup
 
 
-In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets and sightglass (should you wish to use binding and templating which are bundled in), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...) and promises (promise-polyfill), the easiest way is using bower installing webcomponentsjs and promise-polyfill which can be found on github. You can of course use your own if you wish, this is what we use as standard, we have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill by all means give it a try.
+In order to use the NAFF library, you need to include it, there are no dependancies outside of rivets, sightglass and dateFormat (should you wish to use binding and templating which are bundled in), but you will need to polyfill missing functions for older browsers, such as webcomponentsjs (imports, custom components etc...) and promises (promise-polyfill), the easiest way is using bower installing webcomponentsjs and promise-polyfill which can be found on github. You can of course use your own if you wish, this is what we use as standard, we have added them as a dependancy in the bower file so it installs them for you. Should you wish to use another polyfill by all means give it a try.
 
 
 ```html
@@ -619,6 +619,78 @@ __not__
 As per bool above, but giving you the opposite value.
 
 
+__equals__
+
+
+`value | equals reference`
+
+
+Returns a bool dependent on the outcom of checking value to reference (can be variable name or literal).
+
+
+__date__
+
+
+`value | date 'dd-mm-yy'`
+
+
+Returns a formatted date in the format specific, this uses dateFormat function (c) 2007-2009 Steven Levithan stevenlevithan.com, MIT license, details at footer of readme. Taken from [http://blog.stevenlevithan.com/archives/date-time-format]
+
+
+__d__ - Day of the month as digits; no leading zero for single-digit days.
+__dd__ - Day of the month as digits; leading zero for single-digit days.
+__ddd__ - Day of the week as a three-letter abbreviation.
+__dddd__ - Day of the week as its full name.
+__m__ - Month as digits; no leading zero for single-digit months.
+__mm__ - Month as digits; leading zero for single-digit months.
+__mmm__ - Month as a three-letter abbreviation.
+__mmmm__ - Month as its full name.
+__yy__ - Year as last two digits; leading zero for years less than 10.
+__yyyy__ - Year represented by four digits.
+__h__ - Hours; no leading zero for single-digit hours (12-hour clock).
+__hh__ - Hours; leading zero for single-digit hours (12-hour clock).
+__H__ - Hours; no leading zero for single-digit hours (24-hour clock).
+__HH__ - Hours; leading zero for single-digit hours (24-hour clock).
+__M__ - Minutes; no leading zero for single-digit minutes.
+__Uppercase M unlike CF timeFormat's m to avoid conflict with months.
+__MM__ - Minutes; leading zero for single-digit minutes.
+__Uppercase MM unlike CF timeFormat's mm to avoid conflict with months.
+__s__ - Seconds; no leading zero for single-digit seconds.
+__ss__ - Seconds; leading zero for single-digit seconds.
+__l or L__ - Milliseconds. l gives 3 digits. L gives 2 digits.
+__t__ - Lowercase, single-character time marker string: a or p.
+__No equivalent in CF.
+__tt__ - Lowercase, two-character time marker string: am or pm.
+__No equivalent in CF.
+__T__ - Uppercase, single-character time marker string: A or P.
+__Uppercase T unlike CF's t to allow for user-specified casing.
+__TT__ - Uppercase, two-character time marker string: AM or PM.
+__Uppercase TT unlike CF's tt to allow for user-specified casing.
+__Z__ - US timezone abbreviation, e.g. EST or MDT. With non-US timezones or in the Opera browser, the GMT/UTC offset is returned, e.g. GMT-0500
+__No equivalent in CF.
+__o__ - GMT/UTC timezone offset, e.g. -0500 or +0230.
+__No equivalent in CF.
+__S__ - The date's ordinal suffix (st, nd, rd, or th). Works well with d.
+__No equivalent in CF.
+__'…' or "…"__ - Literal character sequence. Surrounding quotes are removed.
+__No equivalent in CF.
+__UTC:__ - Must be the first four characters of the mask. Converts the date from local time to UTC/GMT/Zulu time before applying the mask. The "UTC:" prefix is removed.
+
+
+__default__ - ddd mmm dd yyyy HH:MM:ss	Sat Jun 09 2007 17:46:21
+__shortDate__ - m/d/yy	6/9/07
+__mediumDate__ - mmm d, yyyy	Jun 9, 2007
+__longDate__ - mmmm d, yyyy	June 9, 2007
+__fullDate__ - dddd, mmmm d, yyyy	Saturday, June 9, 2007
+__shortTime__ - h:MM TT	5:46 PM
+__mediumTime__ - h:MM:ss TT	5:46:21 PM
+__longTime__ - h:MM:ss TT Z	5:46:21 PM EST
+__isoDate__ - yyyy-mm-dd	2007-06-09
+__isoTime__ - HH:MM:ss	17:46:21
+__isoDateTime__ - yyyy-mm-dd'T'HH:MM:ss	2007-06-09T17:46:21
+__isoUtcDateTime__ - UTC:yyyy-mm-dd'T'HH:MM:ss'Z'	2007-06-09T22:46:21Z
+
+
 ## Helper Functions in NAFF (naff.[function name])
 
 
@@ -1014,3 +1086,22 @@ naff.registerApplication({
 
 
 We register the new app as a custom element application, bootstraping the name to the elements found (so you can use the app more than once per page, and embed apps in apps too). It is best to create some sort of properties object to hold all app properties, this stops binding issues when using repeats in your binding, pluss it keeps things neet and makes you declare all properties (use something: null to declare new property). From this point on your good to go, the ready function is provided as a kickstart to your app, and everything else is up to you. All features off application elements are the same as custom elements, we just set it up a little different, so all of the above web components info works here too. Simply put we are just creating a simple new element to house our app without the templating stuff.
+
+
+# Credits
+
+
+## Rviets and Sightglass
+
+(c) Michael Richards, MIT licence.
+mikeric
+
+https://github.com/mikeric/rivets
+https://github.com/mikeric/sightglass
+
+## dateFormat
+
+(c) 2007-2009 Steven Levithan stevenlevithan.com, MIT license.
+
+http://blog.stevenlevithan.com/archives/date-time-format
+__GitHub Node Version__ https://github.com/felixge/node-dateformat

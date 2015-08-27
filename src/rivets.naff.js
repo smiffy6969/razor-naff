@@ -1441,6 +1441,16 @@
       return value == 'false' || value == '0' || value == '' || !value ? true : false;
   };
 
+  Rivets['public'].formatters.equals = function(value, reference)
+  {
+      return value == reference ? true : false;
+  };
+
+  Rivets['public'].formatters.date = function(value, format, utc)
+  {
+      return dateFormat(value, format, typeof utc === 'undefined' ? false : true);
+  };
+
   Rivets.factory = function(sightglass) {
     Rivets.sightglass = sightglass;
     Rivets["public"]._ = Rivets;
