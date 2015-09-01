@@ -342,6 +342,7 @@
     View.prototype.build = function() {
       var el, parse, _i, _len, _ref1;
       this.bindings = [];
+      var scope = this;
       parse = (function(_this) {
         return function(node) {
           var block, childNode, delimiters, n, parser, text, token, tokens, _i, _j, _len, _len1, _ref1, _results;
@@ -363,7 +364,9 @@
               }
             }
           } else if (node.nodeType === 1) {
-            block = _this.traverse(node);
+            // ignore items that bind themselves, do not traverse these elements attributes, just children
+            if (node.scope && node.scope.dataBind && scope.els[0] == node) block = false;
+            else block = _this.traverse(node);
           }
           if (!block) {
             _ref1 = (function() {
@@ -397,9 +400,6 @@
     };
 
     View.prototype.traverse = function(node) {
-      // ignore items that bind themselves
-      if (node.scope && node.scope.dataBind) return false;
-
       var attribute, attributes, binder, bindingRegExp, block, identifier, regexp, type, value, _i, _j, _len, _len1, _ref1, _ref2, _ref3;
       bindingRegExp = this.bindingRegExp();
       block = node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE';
@@ -464,7 +464,7 @@
       _results = [];
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
         binding = _ref1[_i];
-        // stop any cross binding of multiple scopes, only bind to first scope found
+        // stop any cross binding of multiple scopes, only binds to first
         if (!binding.el.rivets || binding.el.rivets == this.models.name)
         {
             _results.push(binding.bind());
@@ -1418,7 +1418,8 @@
 
   Rivets['public'].formatters.key = function(value, key)
   {
-      return value[key] || value;
+      if (value == null || key == null || typeof value[key] === 'undefined') return;
+      return value[key];
   };
 
   Rivets['public'].formatters.json = function(value)

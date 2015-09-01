@@ -122,7 +122,7 @@
 		proto.attachedCallback = function()
 		{
 			var app = this;
-			rivets.bind(app, app.scope);
+            rivets.bind(app, app.scope);
 
 			// delay unresolved resolution
 			setTimeout(function()
@@ -480,6 +480,9 @@
 			}
 			else host.innerHTML = template.innerHTML;
 
+            // apply data binding to template if set, do this before merging in content to stop dual binding
+            if (!!bind && typeof rivets != 'undefined') rivets.bind((shadow ? root : host), host.scope);
+
 			// apply any content
 			for (var key in content)
 			{
@@ -502,6 +505,9 @@
 			}
 			else host.innerHTML = template.innerHTML;
 
+            // apply data binding to template if set, do this before merging in content to stop dual binding
+            if (!!bind && typeof rivets != 'undefined') rivets.bind((shadow ? root : host), host.scope);
+
 			// grab content area
 			ele = shadow ? root.querySelector('content') : host.querySelector('content');
 
@@ -520,10 +526,10 @@
 				if (typeof window.ShadowDOMPolyfill != 'undefined') window.ShadowDOMPolyfill.assert(root); // polyfill those that need it, support is limited
 			}
 			else host.innerHTML = template.innerHTML;
-		}
 
-		// apply data binding to template if set
-		if (!!bind && typeof rivets != 'undefined') rivets.bind((shadow ? root : host), host.scope);
+    		// apply data binding to template if set
+    		if (!!bind && typeof rivets != 'undefined') rivets.bind((shadow ? root : host), host.scope);
+		}
 	};
 
 	/**
