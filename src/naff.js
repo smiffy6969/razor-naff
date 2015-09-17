@@ -42,14 +42,6 @@
         sightglass.root = '.';
     }
 
-	if (!document.head.querySelector('style#naff-resolver'))
-	{
-		var resolver = document.createElement("STYLE");
-		resolver.setAttribute('id', 'naff-resolver');
-		resolver.innerHTML = "*[resolve]{display:block;opacity:1;-webkit-transition:opacity 1s ease-in-out;-moz-transition:opacity 1s ease-in-out;transition:opacity 1s ease-in-out;}*[unresolved]{opacity:0;}";
-		document.head.appendChild(resolver);
-	}
-
 	/* PUBLIC */
 
 	/**
@@ -99,7 +91,13 @@
 		{
 			if (this.hasAttribute('resolve')) this.setAttribute('unresolved', '');
 			this.scope = cloneObject(blueprint);
+            this.scope.host = this;
 
+            if (typeof this.scope.created != 'undefined') this.scope.created();
+		};
+
+		proto.attachedCallback = function()
+		{
             if (typeof this.scope.location === 'function')
             {
                 var hashCache = getLocation();
@@ -114,26 +112,14 @@
                 }, false);
             }
 
-            this.scope.host = this;
-
-            if (typeof this.scope.created != 'undefined') this.scope.created();
-		};
-
-		proto.attachedCallback = function()
-		{
 			var app = this;
             rivets.bind(app, app.scope);
-
-			// delay unresolved resolution
-			setTimeout(function()
-            {
-                app.removeAttribute('unresolved');
-            }, 150);
 
             setTimeout(function()
     		{
     			if (typeof app.scope.ready != 'undefined') app.scope.ready();
-    		}, 600);
+                if (app.hasAttribute('cloak')) app.setAttribute('cloak', 'false');
+    		}, 1);
 		};
 
 		// register custom element
@@ -155,12 +141,14 @@
 		{
 			this.scope = cloneObject(blueprint);
 
-			if (!!template)
-			{
-				_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
-				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
-			}
+			var scope = this.scope.host = this;
+			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
+			if (!!blueprint.created) this.scope.created();
+            fire(this, 'created');
+		};
 
+		proto.attachedCallback = function()
+		{
             if (typeof this.scope.location === 'function')
             {
                 var hashCache = getLocation();
@@ -175,19 +163,20 @@
                 }, false);
             }
 
-            // sync any naff attributes [*] to attributes on scope.
-            if (typeof this.naffAttributes !== 'undefined') this.scope.attributes = this.naffAttributes;
+			if (!!template)
+			{
+				_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
+				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
+			}
 
-			var scope = this.scope.host = this;
-			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
-			if (!!blueprint.created) this.scope.created();
-            fire(this, 'created');
-		};
-
-		proto.attachedCallback = function()
-		{
-			if (!!blueprint.attached) this.scope.attached();
+            if (!!blueprint.attached) this.scope.attached();
             fire(this, 'attached');
+
+            var host = this.scope.host;
+            setTimeout(function()
+    		{
+                if (host.hasAttribute('cloak')) host.setAttribute('cloak', 'false');
+    		}, 1);
 		};
 
 		proto.detachedCallback = function()

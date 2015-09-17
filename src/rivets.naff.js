@@ -997,7 +997,7 @@
     priority: 3000,
     bind: function(el) {
       if (!(el.tagName === 'INPUT' && el.type === 'radio')) {
-        this.event = el.tagName.indexOf('SELECT') >= 0 ? 'change' : 'input';
+        this.event = el.tagName.indexOf('-PICKER') > 0 ? 'changed' : (el.tagName.indexOf('SELECT') >= 0 ? 'change' : 'input');
         return Rivets.Util.bindEvent(el, this.event, this.publish);
       }
     },
@@ -1256,14 +1256,10 @@
         {
             // update from binding
             if (value != null) {
-                // copy attributes to object regardless
-                if (!el.naffAttributes) el.naffAttributes = {};
-                el.naffAttributes[this.type] = value;
-
                 // if not an object, also copy to proper attribute
                 if (typeof value !== 'object') return el.setAttribute(this.type, value.toString());
-                else if (el.tagName.indexOf('-')) return el.setAttribute(this.type, 'object bound to scope.attributes');
-                else return el.setAttribute(this.type, 'object bound to naffAttributes');
+                else if (el.tagName.indexOf('-')) return el.setAttribute(this.type, 'object not bound manually set scope.attributes');
+                else return el.setAttribute(this.type, 'object not bound manually set scope.attributes');
             } else {
               return el.removeAttribute(this.type);
             }
