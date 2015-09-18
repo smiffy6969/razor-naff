@@ -117,8 +117,9 @@
 
             setTimeout(function()
     		{
-    			if (typeof app.scope.ready != 'undefined') app.scope.ready();
                 if (app.hasAttribute('cloak')) app.setAttribute('cloak', 'false');
+                if (typeof app.scope.ready != 'undefined') app.scope.ready();
+                fire(app, 'ready');
     		}, 1);
 		};
 
@@ -169,13 +170,12 @@
 				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
 			}
 
-            if (!!blueprint.attached) this.scope.attached();
-            fire(this, 'attached');
-
-            var host = this.scope.host;
+            var app = this;
             setTimeout(function()
     		{
-                if (host.hasAttribute('cloak')) host.setAttribute('cloak', 'false');
+                if (app.scope.host.hasAttribute('cloak')) app.scope.host.setAttribute('cloak', 'false');
+                if (!!blueprint.attached) app.scope.attached();
+                fire(app, 'attached');
     		}, 1);
 		};
 
