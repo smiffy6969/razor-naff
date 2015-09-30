@@ -193,7 +193,7 @@ The reasons for this is functionality being added is mainly due to lack of brows
 
 		pushed: function(event)
 		{
-			this.fire('clicked', 'optional-extra-details'); // fire event on host element, can also use naff.fire(this.host, 'clicked', 'optional')
+			naff.fire(this.host, 'clicked', 'optional-extra-details'); // fire event on host element, can also use naff.fire(this.host, 'clicked', 'optional')
 			this.clickedTimes++;
 			console.log(clickedTimes);
 		}
@@ -488,27 +488,6 @@ This function is run once on load, then on every change to the URL hash, it can 
 	{
 		// run once on load, and every time location is updated
 		console.log('hash location changed');
-	},
-// ...
-```
-
-
-## fire(name [string], details [mixed])
-
-
-This function can be used to fire off custom events from your component, which is handy when you need to provide feedback on things that happen inside. You can override this if you wish, or just use the default fire function provided by naff.
-
-
-* name - The name of the event
-* details - [optional] Any extra details like strings, literals, objects etc
-
-
-```javascript
-// ...
-	clicked: function(event)
-	{
-		this.fire('clicked');
-		this.fire('clicked', event);
 	},
 // ...
 ```

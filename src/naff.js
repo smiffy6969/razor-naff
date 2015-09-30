@@ -98,6 +98,8 @@
 
 		proto.attachedCallback = function()
 		{
+            rivets.bind(this, this.scope);
+
             if (typeof this.scope.location === 'function')
             {
                 var hashCache = getLocation();
@@ -112,14 +114,18 @@
                 }, false);
             }
 
-			var app = this;
-            rivets.bind(app, app.scope);
+            // rivets.bind(this, this.scope);
 
+            var app = this;
             setTimeout(function()
     		{
-                if (app.hasAttribute('cloak')) app.setAttribute('cloak', 'false');
                 if (typeof app.scope.ready != 'undefined') app.scope.ready();
                 fire(app, 'ready');
+
+                setTimeout(function()
+        		{
+                    if (app.hasAttribute('cloak')) app.setAttribute('cloak', 'false');
+        		}, 10);
     		}, 1);
 		};
 
@@ -143,13 +149,18 @@
 			this.scope = cloneObject(blueprint);
 
 			var scope = this.scope.host = this;
-			if (!this.scope.fire) this.scope.fire = function(name, detail) { naff.fire.call(scope, null, name, detail); };
 			if (!!blueprint.created) this.scope.created();
             fire(this, 'created');
 		};
 
 		proto.attachedCallback = function()
 		{
+            if (!!template)
+            {
+                _applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
+                this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
+            }
+
             if (typeof this.scope.location === 'function')
             {
                 var hashCache = getLocation();
@@ -164,19 +175,22 @@
                 }, false);
             }
 
-			if (!!template)
-			{
-				_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
-				this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
-			}
+			// if (!!template)
+			// {
+			// 	_applyTemplate(this, template, blueprint.shadowDom, blueprint.dataBind);
+			// 	this.scope.template = !!this.shadowRoot ? this.shadowRoot : this;
+			// }
 
             var app = this;
             setTimeout(function()
     		{
-                if (app.scope.host.hasAttribute('cloak')) app.scope.host.setAttribute('cloak', 'false');
                 if (!!blueprint.attached) app.scope.attached();
                 fire(app, 'attached');
-    		}, 1);
+                setTimeout(function()
+        		{
+                    if (app.scope.host.hasAttribute('cloak')) app.scope.host.setAttribute('cloak', 'false');
+        		}, 10);
+    		}, 10);
 		};
 
 		proto.detachedCallback = function()
@@ -219,10 +233,21 @@
 	 */
 	var fire = function(element, name, detail)
 	{
-		if (!element) element = this;
-		if (element.host) element = element.host;
-		var event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail });
-		element.dispatchEvent(event);
+        if (element.host) element = element.host;
+
+        var event;
+        try { event = !detail ? new Event(name) : new CustomEvent(name, { 'detail': detail }); }
+        catch(e)
+        {
+            // allback to create event old fashioned way
+            event = document.createEvent('customEvent');
+
+            // Define that the event name is 'build'.
+            if (detail) event.detail = detail;
+            event.initEvent(name, true, true);
+        }
+
+        element.dispatchEvent(event);
 	};
 
     /**
