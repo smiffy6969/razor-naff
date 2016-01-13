@@ -120,7 +120,6 @@
             setTimeout(function()
     		{
                 if (typeof app.scope.ready != 'undefined') app.scope.ready();
-                fire(app, 'ready');
 
                 setTimeout(function()
         		{
@@ -130,7 +129,8 @@
 		};
 
 		// register custom element
-		document.registerElement(blueprint.name, {prototype: proto});
+		var exists = document.createElement('partial-home-priveate').constructor !== HTMLElement;
+		if (!exists) document.registerElement(blueprint.name, {prototype: proto});
 	};
 
 	/**
@@ -150,7 +150,6 @@
 
 			var scope = this.scope.host = this;
 			if (!!blueprint.created) this.scope.created();
-            fire(this, 'created');
 		};
 
 		proto.attachedCallback = function()
@@ -185,7 +184,6 @@
             setTimeout(function()
     		{
                 if (!!blueprint.attached) app.scope.attached();
-                fire(app, 'attached');
                 setTimeout(function()
         		{
                     if (app.scope.host.hasAttribute('cloak')) app.scope.host.setAttribute('cloak', 'false');
@@ -196,7 +194,6 @@
 		proto.detachedCallback = function()
 		{
 			if (!!blueprint.detached) this.scope.detached();
-            fire(this, 'detached');
 		};
 
 		proto.attributeChangedCallback = function(name, oldVal, newVal)
@@ -241,14 +238,20 @@
         {
             // allback to create event old fashioned way
             event = document.createEvent('customEvent');
-
-            // Define that the event name is 'build'.
             if (detail) event.detail = detail;
             event.initEvent(name, true, true);
         }
 
-        element.dispatchEvent(event);
-	};
+try
+{
+    element.dispatchEvent(event);
+}
+catch(e)
+{
+    console.log('MAX CALL STACK ERROR', e)
+    console.log(element, event);
+}
+    };
 
     /**
      * [public] - Micro tool to make ajax/rest requests and return promise, can be called directly using ajax (for basic calls), or via get, post, put, delete

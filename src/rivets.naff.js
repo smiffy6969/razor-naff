@@ -1445,6 +1445,7 @@
 
   Rivets['public'].formatters.date = function(value, format, utc)
   {
+	  if ((typeof value == 'string' && value.length < 1) || (typeof value == 'number' && value < 1)) return '';
       return dateFormat(value, format, typeof utc === 'undefined' ? false : true);
   };
 
