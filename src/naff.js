@@ -254,6 +254,66 @@ catch(e)
     };
 
     /**
+	 * [public] - Cookies control, get, set, remove and check a cookie
+     * @return get function [name] - Fetch a cookie
+     *      @param string name The name of the cookie to fetch
+     * @return set function [name, value, exp, path, domain, secure] - Set a cookie value
+     *      @param string name The name of the cookie set
+     *      @param string value The value to set the cookie to
+     *      @param mixed exp [optional] The expiry for the cookie as a number, string or date value
+     *      @param string domain [optional] The domain for the cookie
+     *      @param bool secure [optional] Should this only be for https
+     * @return remove function [name, path, domain] - Remove a cookie
+     *      @param string name The name of the cookie set
+     *      @param string value The value to set the cookie to
+     *      @param string domain [optional] The domain for the cookie
+     * @return has function [name] - Is the cookie set
+     *      @param string name The name of the cookie set
+     *      @return bool Is the cookie set or not
+	 */
+    var cookie = {
+        get: function (name)
+        {
+            if (!name) return null;
+            var reg = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(name).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
+            return decodeURIComponent(document.cookie.replace(reg, "$1")) || null;
+        },
+        set: function (name, value, exp, path, domain, secure)
+        {
+            if (!name || /^(?:expires|max\-age|path|domain|secure)$/i.test(name)) return false;
+
+            var expire = "";
+            if (typeof exp !== 'undefined')
+            {
+                if (exp.constructor == Number) expire = exp === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + exp;
+                if (exp.constructor == String) expire = "; expires=" + exp;
+                if (exp.constructor == Date) expire = "; expires=" + exp.toUTCString();
+            }
+
+            domain = domain ? "; domain=" + domain : "";
+            path = path ? "; path=" + path : "";
+            secure = secure ? "; secure" : "";
+
+            return document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + expire + domain + path + secure;
+        },
+        remove: function (name, path, domain)
+        {
+            if (!cookie.has(name)) return false;
+
+            domain = domain ? "; domain=" + domain : "";
+            path = path ? "; path=" + path : "";
+
+            return document.cookie = encodeURIComponent(name) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + domain + path;
+        },
+        has: function (name)
+        {
+            if (!name) return false;
+            var reg = new RegExp("(?:^|;\\s*)" + encodeURIComponent(name).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=");
+            return reg.test(document.cookie);
+        }
+    };
+
+    /**
      * [public] - Micro tool to make ajax/rest requests and return promise, can be called directly using ajax (for basic calls), or via get, post, put, delete
      * @param string token The token to set for authorization requests
      * @return ajax function [type, url, data[, headers]] - Basic ajax request
@@ -275,9 +335,10 @@ catch(e)
      *      @param string id The id of the resource to delete
      */
     var request = {
-        token: null, // Authorization token cache for syncrhonizing handshaking
+        // Authorization token cache for syncrhonizing handshaking
+		token: cookie.has('token') ? cookie.get('token') : null,
 
-        ajax: function (type, url, data, headers) {
+		ajax: function (type, url, data, headers) {
             var scope = this;
             type = type.toUpperCase();
             var promise = new Promise(function(resolve, reject)
@@ -302,8 +363,16 @@ catch(e)
                             catch(e) {}
                         }
 
-                        // set token
-                        request.token = this.getResponseHeader('Authorization');
+                        // set any tokens on response
+                        if (request.token != this.getResponseHeader('Authorization'))
+						{
+							request.token = this.getResponseHeader('Authorization');
+							if (cookie.has('token'))
+							{
+								var expires = new Date(Date.now() + 604800000); // cookie lasts 1 week
+								cookie.set('token', request.token, expires);
+							}
+						}
 
                         // set response type
                         if (xhrRequest.status === 200) resolve({data: output, response: xhrRequest});
@@ -393,66 +462,6 @@ catch(e)
         }
 
         window.location.href = encodeURI(newUrl);
-    };
-
-    /**
-	 * [public] - Cookies control, get, set, remove and check a cookie
-     * @return get function [name] - Fetch a cookie
-     *      @param string name The name of the cookie to fetch
-     * @return set function [name, value, exp, path, domain, secure] - Set a cookie value
-     *      @param string name The name of the cookie set
-     *      @param string value The value to set the cookie to
-     *      @param mixed exp [optional] The expiry for the cookie as a number, string or date value
-     *      @param string domain [optional] The domain for the cookie
-     *      @param bool secure [optional] Should this only be for https
-     * @return remove function [name, path, domain] - Remove a cookie
-     *      @param string name The name of the cookie set
-     *      @param string value The value to set the cookie to
-     *      @param string domain [optional] The domain for the cookie
-     * @return has function [name] - Is the cookie set
-     *      @param string name The name of the cookie set
-     *      @return bool Is the cookie set or not
-	 */
-    var cookie = {
-        get: function (name)
-        {
-            if (!name) return null;
-            var reg = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(name).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
-            return decodeURIComponent(document.cookie.replace(reg, "$1")) || null;
-        },
-        set: function (name, value, exp, path, domain, secure)
-        {
-            if (!name || /^(?:expires|max\-age|path|domain|secure)$/i.test(name)) return false;
-
-            var expire = "";
-            if (typeof exp !== 'undefined')
-            {
-                if (exp.constructor == Number) expire = exp === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + exp;
-                if (exp.constructor == String) expire = "; expires=" + exp;
-                if (exp.constructor == Date) expire = "; expires=" + exp.toUTCString();
-            }
-
-            domain = domain ? "; domain=" + domain : "";
-            path = path ? "; path=" + path : "";
-            secure = secure ? "; secure" : "";
-
-            return document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + expire + domain + path + secure;
-        },
-        remove: function (name, path, domain)
-        {
-            if (!cookie.has(name)) return false;
-
-            domain = domain ? "; domain=" + domain : "";
-            path = path ? "; path=" + path : "";
-
-            return document.cookie = encodeURIComponent(name) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + domain + path;
-        },
-        has: function (name)
-        {
-            if (!name) return false;
-            var reg = new RegExp("(?:^|;\\s*)" + encodeURIComponent(name).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=");
-            return reg.test(document.cookie);
-        }
     };
 
 	/* PRIVATE */
