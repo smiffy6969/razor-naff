@@ -1449,6 +1449,16 @@
       return dateFormat(value, format, typeof utc === 'undefined' ? false : true);
   };
 
+  Rivets['public'].formatters.prefix = function(value, prefix)
+  {
+	     return '' + prefix + value;
+  };
+
+  Rivets['public'].formatters.suffix = function(value, suffix)
+  {
+      return '' + value + suffix;
+  };
+
   Rivets.factory = function(sightglass) {
     Rivets.sightglass = sightglass;
     Rivets["public"]._ = Rivets;
